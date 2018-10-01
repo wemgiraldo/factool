@@ -17,7 +17,6 @@ httpServer = null;
 config = null;
 
 configPath = "./config/config.json";
-settingsprjPath = "./config/settingsprj.json";
 
 /**
  *  Configuration
@@ -25,8 +24,6 @@ settingsprjPath = "./config/settingsprj.json";
 
 
 config = HigJS.str.toObj(fs.readFileSync(configPath));       // Lettura configurazione server
-settingsprj = HigJS.str.toObj(fs.readFileSync(settingsprjPath));       // Lettura configurazione info x riempimenti e k
-app.locals.settingsprj = settingsprj;
 
 if (!checkConfig()) {
   process.exit(1);
@@ -46,15 +43,6 @@ fs.watchFile(configPath, function () {
 
   initDbConnection();
   initServer();
-
-});
-
-fs.watchFile(settingsprjPath, function () {
-
-  logger.log("Reloading settingsprj...", "inf");
-
-  settingsprj = HigJS.str.toObj(fs.readFileSync(settingsprjPath)) || {};
-  app.locals.settingsprj = settingsprj;
 
 });
 

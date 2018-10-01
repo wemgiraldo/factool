@@ -31,19 +31,9 @@ router.get('/', function(req, res) {
 });
 
 /* 
-* PROJECTS
-*/
-router.all('/projects*', ensureAuthenticated, require('./projects'));
-
-/* 
 * CONFIG
 */
 router.all('/config*', ensureAuthenticated, require('./config'));
-
-/* 
-* SETTINGS PRJ
-*/
-router.all('/settingsprj*', ensureAuthenticated, require('./settingsprj'));
 
 // Simple route middleware to ensure user is authenticated.
 //  Use this route middleware on any resource that needs to be protected.  If
