@@ -1,0 +1,5 @@
+
+mixin ul-string(value, separator=",")
+  ul&attributes(attributes)
+    each elem in value.split(separator)
+      li #{elem}

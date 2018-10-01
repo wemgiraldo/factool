@@ -1,0 +1,14 @@
+mixin coinbase-script()
+  script(src="https://commerce.coinbase.com/v1/checkout.js")&attributes(attributes)
+
+mixin coinbase-default(id, span_text, include_script=false)
+  a.donate-with-crypto(href=`https://commerce.coinbase.com/checkout/${id}`)&attributes(attributes)
+    span #{span_text}
+  - if (include_script)
+    script(src="https://commerce.coinbase.com/v1/checkout.js")
+
+mixin coinbase(id, span_text, include_script=false)
+  a(href=`https://commerce.coinbase.com/checkout/${id}`)&attributes(attributes)
+    span #{span_text}
+  - if (include_script)
+    script(src="https://commerce.coinbase.com/v1/checkout.js")

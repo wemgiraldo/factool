@@ -1,0 +1,77 @@
+
+mixin ivoox-audio(id)
+  - src = `https://www.ivoox.com/player_ej_${id}_4_1.html?`
+  - if ("c1" in attributes)
+    - c1 = attributes.c1;
+    - delete attributes.c1;
+    - src = src + `c1=${c1}`
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(frameborder="0"
+         allowfullscreen="true"
+         scrolling="no"
+         src=`${src}`
+         width="100%"
+         height="200")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin ivoox-podcast(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://www.ivoox.com/player_es_podcast_${id}_1.html`
+         frameborder="0"
+         allowfullscreen="0"
+         scrolling="no"
+         width="100%"
+         height="440")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin ivoox-playlist(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://www.ivoox.com/player_es_channel_${id}_1.html`
+         frameborder="0"
+         allowfullscreen="0"
+         scrolling="no"
+         width="100%"
+         height="440")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin ivoox-channel-subscription(id)
+  - src = `https://www.ivoox.com/_ns_${id}_0_.html?`
+  - if ("c1" in attributes)
+    - c1 = attributes.c1;
+    - delete attributes.c1;
+    - src = src + `c1=${c1}&`
+  - if ("c2" in attributes)
+    - c2 = attributes.c2;
+    - delete attributes.c2;
+    - src = src + `c2=${c2}&`
+  - if ("r" in attributes)
+    - r = attributes.r;
+    - delete attributes.r;
+    - src = src + `r=${r}&`
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`${src}`
+         frameborder="0"
+         scrolling="no"
+         allowfullscreen="true"
+         height="174")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

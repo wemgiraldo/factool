@@ -1,0 +1,4 @@
+mixin gist(user, id)
+  - if (id.length != 32)
+    - throw new Error("Invalid gist id length. Must be 32 but is " + id.length)
+  script(src=`https://gist.github.com/${user}/${id}.js`)&attributes(attributes)

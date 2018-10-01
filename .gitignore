@@ -1,0 +1,21 @@
+# Common files exclude
+*.o
+*.~*
+*.so
+*.directory
+*.hig
+*.hig3
+*.hig64
+*.hig86
+*.sublime*
+config/config.json
+config/config.json.old
+
+# Folders
+*/cmp/*
+dist/pkgs/*
+node_modules
+inst/*
+log/*
+nbproject
+.vscode

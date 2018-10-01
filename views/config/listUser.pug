@@ -1,0 +1,40 @@
+extends config
+
+block content
+  .row
+    .col-sm.d-flex.align-items-center.mt-3
+        .display-3.content-title.ml-5 USERS LIST
+          a.btn.btn-backend.ml-4(href="/config/user/edit") Add User
+
+  .row
+    .col-sm#list-container
+      table.dt.table.table-hover.mt-5()
+        thead
+            tr
+              th Email
+              th Name
+              th Roles
+              th Enabled
+              th Locked
+              th Expired
+              th Last Login
+        tbody
+            for user in users
+                tr
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.email
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.name
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.roles
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.enabled
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.locked
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id)=user.expired
+                    td
+                      a.d-block(href="/config/user/edit/"+user.id) 
+                        if user.last_login
+                         | #{moment(user.last_login).format('Y-MM-DD HH:MM:ss')}
+                    

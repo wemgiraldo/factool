@@ -1,0 +1,14 @@
+
+mixin vimeo-video(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://player.vimeo.com/video/${id}`
+         frameborder="0"
+         width="640"
+         height="360"
+         allowfullscreen)&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

@@ -1,0 +1,17 @@
+
+mixin table-json(src, header=true)
+  //- requires context --> {require: require}
+  - matrix_table = require(src);
+  - count = 0;
+  table&attributes(attributes)
+    each row in matrix_table
+      tr
+        each column in row
+          - if (count == 0)
+            - if (header == true)
+              th #{column}
+            - else
+              td #{column}
+          - else
+            td #{column}
+        - count += 1;

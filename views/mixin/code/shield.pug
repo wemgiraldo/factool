@@ -1,0 +1,113 @@
+mixin shield-urls(image_url, target_url)
+  a(href=target_url target="__blank")&attributes(attributes)
+    img(src=image_url)
+
+mixin shield(service, project_id)
+  - if (attributes)
+    - if ("branch" in attributes)
+      - branch = attributes.branch;
+      - delete attributes.branch;
+    - else
+      - branch = "master";
+    - if ("version" in attributes)
+      - version = attributes.version;
+      - delete attributes.version;
+    - else
+      - version = "latest";
+    - if ("url" in attributes)
+      - url = attributes.url;
+      - delete attributes.url;
+    - else
+      - url = null;
+  - else
+    - attributes = {};
+  - if (service == "travis")
+    - url = url || `https://travis-ci.org/${project_id}`;
+    +shield-urls(
+      `https://travis-ci.org/${project_id}.svg?branch=${branch}`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "pypi-version")
+    - url = url || `https://pypi.org/project/${project_id}`;
+    +shield-urls(
+      `https://img.shields.io/pypi/v/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "pypi-py-versions")
+    - url = url || `https://pypi.org/project/${project_id}`;
+    +shield-urls(
+      `https://img.shields.io/pypi/pyversions/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "pypi-status")
+    - url = url || `https://pypi.org/project/${project_id}`;
+    +shield-urls(
+      `https://img.shields.io/pypi/status/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "pypi-license")
+    - url = url || `https://pypi.org/project/${project_id}`;
+    +shield-urls(
+      `https://img.shields.io/pypi/l/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "binder")
+    - url = url || `https://mybinder.org/v2/gh/${project_id}/${branch}`;
+    +shield-urls(
+      `https://mybinder.org/badge.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "readthedocs" || service == "rtd")
+    - url = url || `http://${project_id}.readthedocs.io/`;
+    +shield-urls(
+      `https://readthedocs.org/projects/${project_id}/badge/?version=${version}`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "ask-me-anything")
+    - url = url || project_id;
+    +shield-urls(
+      `https://camo.githubusercontent.com/d52b9239d76d77ebff4fc954745ee8ba555338ee/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f41736b2532306d652d616e797468696e672d3161626339632e737667`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "github-issues")
+    - url = url || `https://github.com/${project_id}/issues`;
+    +shield-urls(
+      `https://img.shields.io/github/issues/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "github-issues-closed")
+    - url = url || `https://github.com/${project_id}/issues?q=is%3Aissue+is%3Aclosed`;
+    +shield-urls(
+      `https://img.shields.io/github/issues-closed/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "github-issues-closed-in")
+    - url = url || `https://github.com/${project_id}/issues`;
+    +shield-urls(
+      `https://img.shields.io/issuestats/i/long/github/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "github-last-commit")
+    - url = url || `https://github.com/${project_id}/commits`;
+    +shield-urls(
+      `https://img.shields.io/github/last-commit/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "github-contributors")
+    - url = url || `https://github.com/${project_id}/graphs/contributors`;
+    +shield-urls(
+      `https://img.shields.io/github/contributors/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "isitmaintained-issues-open-perc")
+    - url = url || `http://isitmaintained.com/project/${project_id}`;
+    +shield-urls(
+      `http://isitmaintained.com/badge/open/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)
+  - else if (service == "isitmaintained-issues-closed-in")
+    - url = url || `http://isitmaintained.com/project/${project_id}`;
+    +shield-urls(
+      `http://isitmaintained.com/badge/resolution/${project_id}.svg`,
+      `${url}`
+    )&attributes(attributes)

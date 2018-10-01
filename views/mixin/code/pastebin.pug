@@ -1,0 +1,11 @@
+mixin pastebin(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://pastebin.com/embed_iframe/${id}`
+         width="100%"
+         height="315")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

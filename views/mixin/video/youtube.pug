@@ -1,0 +1,49 @@
+mixin youtube-video(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  - if ("autoplay" in attributes)
+    - autoplay = attributes.autoplay;
+    - delete attributes.autoplay;
+  - else
+    - autoplay = false;
+  - if (autoplay == true)
+    - autoplay = 1;
+  - else
+    - autoplay = 0;
+  - src = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}`
+  iframe(src=`${src}`
+         frameborder="0"
+         allow="autoplay;encrypted-media"
+         allowfullscreen="true"
+         width="560"
+         height="315")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin youtube-playlist(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  - if ("autoplay" in attributes)
+    - autoplay = attributes.autoplay;
+    - delete attributes.autoplay;
+  - else
+    - autoplay = false;
+  - if (autoplay == true)
+    - autoplay = 1;
+  - else
+    - autoplay = 0;
+  iframe(src=`https://www.youtube.com/embed/videoseries?list=${id}&autoplay=${autoplay}`
+         frameborder="0"
+         allow="autoplay;encrypted-media"
+         allowfullscreen="true"
+         width="560"
+         height="315")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+

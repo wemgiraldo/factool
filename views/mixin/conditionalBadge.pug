@@ -1,0 +1,5 @@
+mixin conditionalBadge(condition,ok,ko)
+    if (condition)
+        span.badge.badge-success=ok
+    else
+        span.badge.badge-danger=ko

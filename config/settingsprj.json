@@ -1,0 +1,412 @@
+{
+    "inputOnBos": {
+        "evcType": "Public,Corporate,Test",
+        "chargingCapacity": "3.7,7.4,11,22,30,-",
+        "nrSockets": "1,2,3,4,5,-",
+        "preliminaryCapEx": "Yes,No",
+        "evcCosts": "3420",
+        "engPermCosts": "300",
+        "contingency": "10"
+    },
+    "inputOnPod": {
+        "tariff": "BTVE",
+        "typeOfSupply": "trifase,monofase",
+        "expPodDist": "10",
+        "BECperPodCost": "100",
+        "BECcapPodCost": "-",
+        "capContrGridConnCust": "-"
+    },
+    "otherInformation": {
+        "technology": "EV Charger",
+        "thirdPartOwnership": "Yes, No, -",
+        "ownership": "BE Charge Srl",
+        "supplier": "Innogy",
+        "model": "eStation",
+        "typeSocket": "Type 2",
+        "modeCharging": "Mode 3",
+        "auth": "App/Smartphone, credit card, Plug & Charge and RFID",
+        "comunication": "GPRS and TCP/IP",
+        "indexProt": "IP54",
+        "housing": "Standard fiberglass",
+        "expEvehicles": "Vehicles for the transport of persons (Categoria M),Vehicles for the transport of goods (Categoria N),Mopeds motorcycles and quads (Categoria L),Vehicles for the transport of persons or goods (Categoria M and N),All vehicles,Other vehicles",
+        "expEndUsers": "All users",
+        "ratedRatio": "65",
+        "operatingScenario": "Energy only",
+        "phase": "Scouting",
+        "status": "Origination",
+        "notes": "-"
+    },
+    "access_type": {
+        "1": {
+            "value": "Daytime access",
+            "HoursAccess": "00-24"
+        },
+        "2": {
+            "value": "Night access",
+            "HoursAccess": "18-06"
+        },
+        "3": {
+            "value": "Daily access",
+            "HoursAccess": "06-18"
+        },
+        "4": {
+            "value": "Other access",
+            "HoursAccess": "Other daily access"
+        }
+    },
+    "area_type": {
+        "1": {
+            "value": "Urban area"
+        },
+        "2": {
+            "value": "Extra urban area"
+        }
+    },
+    "cable_routing_instal": {
+        "1": {
+            "value": "Already existing"
+        },
+        "2": {
+            "value": "ex-novo"
+        }
+    },
+    "cabling_routing": {
+        "1": {
+            "value": "indoor"
+        },
+        "2": {
+            "value": "outdoor"
+        }
+    },
+    "cabling_routing_type": {
+        "1": {
+            "value": "underground"
+        },
+        "2": {
+            "value": "no underground"
+        }
+    },
+    "contract_type": {
+        "1": {
+            "value": "Governament contract"
+        },
+        "2": {
+            "value": "Private contract"
+        },
+        "3": {
+            "value": "Grant"
+        },
+        "4": {
+            "value": "Public concession"
+        },
+        "5": {
+            "value": "Other contract"
+        }
+    },
+    "contract_duration": {
+        "1": {
+            "value": "15",
+            "vote": "10",
+            "conditioned_weight": "0"
+        },
+        "2": {
+            "value": "14",
+            "vote": "10",
+            "conditioned_weight": "0"
+        },
+        "3": {
+            "value": "13",
+            "vote": "10",
+            "conditioned_weight": "0"
+        },
+        "4": {
+            "value": "12",
+            "vote": "8",
+            "conditioned_weight": "0"
+        },
+        "5": {
+            "value": "11",
+            "vote": "8",
+            "conditioned_weight": "0"
+        },
+        "6": {
+            "value": "10",
+            "vote": "8",
+            "conditioned_weight": "0"
+        },
+        "7": {
+            "value": "9",
+            "vote": "7",
+            "conditioned_weight": "0"
+        },
+        "8": {
+            "value": "8",
+            "vote": "7",
+            "conditioned_weight": "0"
+        },
+        "9": {
+            "value": "7",
+            "vote": "7",
+            "conditioned_weight": "0"
+        },
+        "10": {
+            "value": "6",
+            "vote": "7",
+            "conditioned_weight": "0"
+        },
+        "11": {
+            "value": "5",
+            "vote": "4",
+            "conditioned_weight": "0"
+        },
+        "12": {
+            "value": "4",
+            "vote": "3",
+            "conditioned_weight": "0"
+        },
+        "13": {
+            "value": "3",
+            "vote": "3",
+            "conditioned_weight": "0"
+        },
+        "14": {
+            "value": "2",
+            "vote": "1",
+            "conditioned_weight": "0"
+        },
+        "15": {
+            "value": "1",
+            "vote": "1",
+            "conditioned_weight": "0"
+        }
+    },
+    "evc_installation": {
+        "1": {
+            "value": "Wall"
+        },
+        "2": {
+            "value": "Stand"
+        },
+        "3": {
+            "value": "Other installation"
+        }
+    },
+    "site_type": {
+        "1": {
+            "value": "Cinema",
+            "location_quality": "High",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "2": {
+            "value": "Expo area",
+            "location_quality": "Medium",
+            "typical_stop": "Very long stop (>2h)"
+        },
+        "3": {
+            "value": "Fast food",
+            "location_quality": "Very high",
+            "typical_stop": "Short stop (30mins-1h)"
+        },
+        "4": {
+            "value": "Garage",
+            "location_quality": "Low",
+            "typical_stop": "Very long stop (>2h)"
+        },
+        "5": {
+            "value": "Gas station",
+            "location_quality": "Very high",
+            "typical_stop": "Very short stop (<30 mins)"
+        },
+        "6": {
+            "value": "Gym center",
+            "location_quality": "High",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "7": {
+            "value": "Hospital",
+            "location_quality": "Medium",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "8": {
+            "value": "Hotel",
+            "location_quality": "Medium",
+            "typical_stop": "Very long stop (>2h)"
+        },
+        "9": {
+            "value": "Library",
+            "location_quality": "Medium",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "10": {
+            "value": "Mall",
+            "location_quality": "Very high",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "11": {
+            "value": "Offices",
+            "location_quality": "Low",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "12": {
+            "value": "Private parking area",
+            "location_quality": "Medium",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "13": {
+            "value": "Public extra urban area",
+            "location_quality": "Low",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "14": {
+            "value": "Public urban area",
+            "location_quality": "Low",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "15": {
+            "value": "Railway / Bus stations",
+            "location_quality": "Low",
+            "typical_stop": "Very long stop (>2h)"
+        },
+        "16": {
+            "value": "Restaurant",
+            "location_quality": "High",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "17": {
+            "value": "Sport facility",
+            "location_quality": "High",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "18": {
+            "value": "Supermarket",
+            "location_quality": "Very high",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "19": {
+            "value": "Swimming pool",
+            "location_quality": "Medium",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "20": {
+            "value": "Theater",
+            "location_quality": "Medium",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "21": {
+            "value": "Toll parking area",
+            "location_quality": "Medium",
+            "typical_stop": "Typical stop (1h)"
+        },
+        "22": {
+            "value": "University",
+            "location_quality": "Low",
+            "typical_stop": "Long stop (1.5h)"
+        },
+        "23": {
+            "value": "Other site",
+            "location_quality": "Other frequencies",
+            "typical_stop": "Very short stop (<30 mins)"
+        }
+    },
+    "proponent_type": {
+        "1": {
+            "value": "Technical Partner",
+            "maxCommFee": "1500"
+        },
+        "2": {
+            "value": "Business Developer Tecnico",
+            "maxCommFee": "1200"
+        },
+        "3": {
+            "value": "Business Developer",
+            "maxCommFee": "1000"
+        },
+        "4": {
+            "value": "Other",
+            "maxCommFee": "150"
+        },
+        "5": {
+            "value": "-",
+            "maxCommFee": "0"
+        }
+    },
+    "installation_type": {
+        "1": {
+            "value": "Public parking in private area"
+        },
+        "2": {
+            "value": "Public parking in public area"
+        },
+        "3": {
+            "value": "Private parking area"
+        },
+        "4": {
+            "value": "Toll parking area"
+        },
+        "5": {
+            "value": "Other installation"
+        }
+    },
+    "evc_score": {
+        "1": {
+            "value": "1",
+            "evc_ranking": "F",
+            "evc_priority": "No Priority",
+            "evc_judgment": "Not an opportunity"
+        },
+        "2": {
+            "value": "2",
+            "evc_ranking": "E-",
+            "evc_priority": "Very low",
+            "evc_judgment": "Almost an opportunity"
+        },
+        "3": {
+            "value": "3",
+            "evc_ranking": "E",
+            "evc_priority": "Very low",
+            "evc_judgment": "Very poor opportunity"
+        },
+        "4": {
+            "value": "4",
+            "evc_ranking": "D-",
+            "evc_priority": "Low",
+            "evc_judgment": "Poor opportunity"
+        },
+        "5": {
+            "value": "5",
+            "evc_ranking": "D",
+            "evc_priority": "Low",
+            "evc_judgment": "Close to a normal opportunity"
+        },
+        "6": {
+            "value": "6",
+            "evc_ranking": "C",
+            "evc_priority": "Medium",
+            "evc_judgment": "Normal opportunity"
+        },
+        "7": {
+            "value": "7",
+            "evc_ranking": "B",
+            "evc_priority": "Medium-high",
+            "evc_judgment": "Good opportunity"
+        },
+        "8": {
+            "value": "8",
+            "evc_ranking": "B+",
+            "evc_priority": "High",
+            "evc_judgment": "Very good opportunity"
+        },
+        "9": {
+            "value": "9",
+            "evc_ranking": "A",
+            "evc_priority": "Very High",
+            "evc_judgment": "Super opportunity"
+        },
+        "10": {
+            "value": "10",
+            "evc_ranking": "A+",
+            "evc_priority": "Very High",
+            "evc_judgment": "Excellent opportunity"
+        }
+    }
+}

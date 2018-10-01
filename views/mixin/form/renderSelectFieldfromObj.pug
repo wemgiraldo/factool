@@ -1,0 +1,23 @@
+mixin renderSelectFieldfromObj(choices,name,label,value,errors)
+    if (errors)
+        if (errors[name])
+            - errorClass = "is-invalid"
+        else
+            - errorClass = "is-valid"
+    else
+       - errorClass = ""
+
+    - classes=`form-control ${errorClass}`
+
+    if (label)
+        label(for=name)=label
+    
+    select(id=name class=classes name=name value=value)&attributes(attributes)
+        each type,index in choices
+            if (index==value)
+                option(value=index selected)=choices[index].value
+            else
+                option(value=index)=choices[index].value
+       
+    if (errors && errors[name])
+        .invalid-feedback=errors[name]

@@ -1,0 +1,43 @@
+
+mixin google-map-place(query, key)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  - if (query.length == 27 && query.indexOf(["+"]) < 1)
+    - query = "place_id:" + query
+  - else
+    - query = query.replace(/ /g, "+");
+  iframe(src=`https://google.com/maps/embed/v1/place?key=${key}&q=${query}`
+         frameborder="0"
+         width="100%"
+         height="450")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin google-map-view(center, zoom, key)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  - if ("maptype" in attributes)
+    - maptype = attributes.maptype;
+    - delete attributes.maptype;
+  - else
+    - maptype = "roadmap";
+  - src = `https://google.com/maps/embed/v1/view?key=${key}&center=${center}&zoom=${zoom}&maptype=${maptype}`
+  - if ("language" in attributes)
+    - src = src + `&language=${attributes.language}`;
+    - delete attributes.language;
+  - if ("region" in attributes)
+    - src = src + `&region=${attributes.region}`;
+    - delete attributes.region;
+  iframe(frameborder="0"
+         width="100%"
+         height="450"
+         src=`${src}`)&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+

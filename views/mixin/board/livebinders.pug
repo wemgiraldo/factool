@@ -1,0 +1,15 @@
+mixin livebinder(id)
+  - if ("present" in attributes)
+    - present = attributes.present;
+    - delete attributes.present;
+  - else
+    - present = true;
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://www.livebinders.com/play/play?id=${id}&present=${present}`
+         frameborder="0")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

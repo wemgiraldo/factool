@@ -1,0 +1,25 @@
+mixin storify(user, slug)
+  - if ("border" in attributes)
+    - border = attributes.border;
+    - delete attributes.border;
+  - else
+    - border = false;
+  - if ("post_title" in attributes)
+    - post_title = attributes.post_title;
+    delete attributes.post_title;
+  - else
+    - post_title = slug.replace("-", " ")
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  .storify
+    iframe(src=`https://storify.com/${user}/${slug}/embed?border=${border}`
+           width="100%" height="750" frameborder="no" allowtransparency="true")
+    script(src=`https://storify.com/${user}/${slug}.js?border=${border}`)
+    - if (alt)
+      noscript
+        | [
+        a(href=`https://storify.com/${user}/${slug}` target="__blank") View the story "#{post_title}" on Storify
+        | ]

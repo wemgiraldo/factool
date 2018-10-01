@@ -1,0 +1,15 @@
+mixin renderInputField(t,name,label,value,errors)
+    if (errors)
+        if (errors[name])
+            - errorClass = "is-invalid"
+        else
+            - errorClass = "is-valid"
+    else
+       - errorClass = ""
+
+    - classes=`form-control ${errorClass}`
+
+    label(for=name)=label
+    input(id=name class=classes type=t placeholder=label name=name value=value)&attributes(attributes) 
+    if (errors && errors[name])
+        .invalid-feedback=errors[name]

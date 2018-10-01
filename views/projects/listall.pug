@@ -1,0 +1,25 @@
+extends ../layout
+
+block append scripts
+  script(src="/javascripts/project_status.js")
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+          a(class="nav-link", href="/projects/active") Active Projects
+        li(class="nav-item")
+          a(class="nav-link", href="/projects/all") All Projects
+
+block content
+  
+    .col-sm#listprjall-container
+      table.table.table-hover.mt-5(data-title='PROJECTS LIST')
+        thead
+            tr
+              th.id ID
+              th Project Name
+              th OpeningDate
+              th ClosingDate
+              th.prj-Status Status

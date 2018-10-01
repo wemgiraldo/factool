@@ -1,0 +1,20 @@
+mixin renderCheckboxField(name,label,value,errors)
+    if (errors)
+        if (errors[name])
+            - errorClass = "is-invalid"
+        else
+            - errorClass = "is-valid"
+    else
+       - errorClass = ""
+
+    - classes=`form-control ${errorClass}`
+
+    if (value && value != 0)
+        - checked=true
+    else
+        - checked=false
+    .checkbox
+        label.d-flex.align-items-center(for=name)=label
+            input.w-auto.ml-3(type='checkbox' id=name class=classes placeholder=label name=name checked=checked)&attributes(attributes) 
+            if (errors && errors[name])
+                .invalid-feedback=errors[name]

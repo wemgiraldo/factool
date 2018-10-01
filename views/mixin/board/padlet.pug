@@ -1,0 +1,35 @@
+mixin padlet(id)
+  - if ("header" in attributes || "footer" in attributes)
+    - iframe_only = false
+  - else
+    - iframe_only = true
+  - if ("header" in attributes)
+    - header = true;
+    - delete attributes.header;
+  - else
+    - header = false;
+  - if ("footer" in attributes)
+    - footer = true;
+    - delete attributes.footer;
+  - else
+    - footer = false;
+  - if (iframe_only)
+    iframe(src=`https://padlet.com/embed/${id}`
+           frameborder="0")&attributes(attributes)
+  - else
+    - if (header)
+      .padlet-embed(style="border:1px solid rgba(0,0,0,0.1);border-radius:2px;box-sizing:border-box;overflow:hidden;position:relative;width:100%;background:#F4F4F4")&attributes(attributes)
+    - else
+      .padlet-embed(style="overflow:hidden;position:relative;")
+        p(style="padding:0;margin:0")
+          iframe(src=`https://padlet.com/embed/${id}`
+             frameborder="0")&attributes(attributes)
+        - if (footer)
+          div(style="padding:8px;text-align:right;margin:0;")
+            a(href="https://padlet.com?ref=embed"
+              style="padding:0;margin:0;border:none;display:block;line-height:1;height:16px"
+              target="_blank")
+              img(src="https://resources.padletcdn.com/assets/made_with_padlet.png"
+                  width="86" height="16"
+                  style="padding:0;margin:0;background:none;border:none;display:inline;box-shadow:none"
+                  alt="Made with Padlet")

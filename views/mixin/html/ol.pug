@@ -1,0 +1,5 @@
+
+mixin ol-string(value, separator=",")
+  ol&attributes(attributes)
+    each elem in value.split(separator)
+      li #{elem}

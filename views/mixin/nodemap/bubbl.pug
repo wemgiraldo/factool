@@ -1,0 +1,14 @@
+
+mixin bubbl-map(id)
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`https://bubbl.us/${id}?utm_source=page-embed&utm_medium=link&s=9040282`
+         allowfullscreen="true"
+         frameborder="0"
+         width="100%"
+         height="400")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

@@ -1,0 +1,17 @@
+mixin renderFieldfromObj(choices,value,errors)
+    if (errors)
+        if (errors[name])
+            - errorClass = "is-invalid"
+        else
+            - errorClass = "is-valid"
+    else
+       - errorClass = ""
+
+    - classes=`form-control ${errorClass}`
+
+    each type,index in choices
+        if (index==value)
+            td=choices[index].value
+        
+    if (errors && errors[name])
+        .invalid-feedback=errors[name]

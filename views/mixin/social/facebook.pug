@@ -1,0 +1,74 @@
+mixin facebook-like(href)
+  - if ("layout" in attributes)
+    - layout = attributes.layout;
+    - delete attributes.layout;
+  - else
+    - layout = "standard";
+  - if ("action" in attributes)
+    - action = attributes.action;
+    - delete attributes.action;
+  - else
+    - action = "like"
+  - if ("size" in attributes)
+    - size = attributes.size;
+    - delete attributes.size;
+  - else
+    - size = "small";
+  - if ("show_faces" in attributes)
+    - show_faces = attributes.show_faces;
+    delete attributes.show_faces;
+  - else
+    - show_faces = true;
+  - if ("share" in attributes)
+    - share = attributes.share;
+    - delete attributes.share;
+  - else
+    - share = true;
+  - if ("colorscheme" in attributes)
+    - colorscheme = attributes.colorscheme;
+    - delete attributes.colorscheme;
+  - else
+    - colorscheme = "light";
+  - src = `https://www.facebook.com/plugins/like.php?href=${href}&layout=${layout}&action=${action}&size=${size}&show_faces=${show_faces}&share=${share}&colorscheme=${colorscheme}`
+  - if ("app_id" in attributes)
+    - app_id = attributes.app_id;
+    - delete attributes.app_id;
+    - src = src + `&appId=${app_id}`
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`${src}`
+         scrolling="no" frameborder="0"
+         allowtransparency="true"
+         allow="encrypted-media"
+         width="450"
+         height="80")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin facebook-post(user_id, post_number)
+  - if ("show_text" in attributes)
+    - show_text = attributes.show_text;
+    - delete attributes.show_text;
+  - else
+    - show_text = true;
+  - src = `https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2F${user_id}%2Fposts%2F${post_number}&show_text=${show_text}`
+  - if ("app_id" in attributes)
+    - app_id = attributes.app_id;
+    - delete attributes.app_id;
+    - src = src + `&appId=${app_id}`
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`${src}`
+         scrolling="no" frameborder="0"
+         allowtransparency="true"
+         allow="encrypted-media"
+         width="500"
+         height="289")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

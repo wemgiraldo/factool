@@ -1,0 +1,134 @@
+extends ../layout
+
+include ../mixin/form/renderInputField.pug
+include ../mixin/form/renderSelectField.pug
+include ../mixin/form/renderSelectFieldfromObj.pug
+
+block append scripts
+  script(src="https://maps.googleapis.com/maps/api/js?key="+gmapApiKey+"&libraries=places&callback=initMap" async defer)
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            if (prj)
+                a(class="nav-link", href="/projects/one/"+prj.id) Back
+            else
+                a(class="nav-link", href="/projects/active") Back
+
+block content
+  .row
+    .col-sm
+        .display-3.content-title.ml-5.mt-3=title
+
+  .row
+    .col-sm-12
+        form.mt-5.mr-5(method='POST' action='' form='prjForm')
+            div.card.container-fluid.mt-5
+                .card-header PROJECT INFO
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","name","Name",(null===prj ? '' : prj.name),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("date","opening_date","Opening Date",(null===prj ? '' : prj.opening_date),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("date","closing_date","Closing Date",(null===prj ? '' : prj.closing_date),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectField({"open":"open","in progress":"in progress", "closed": "closed"},"status","Status",(null===prj ? '' : prj.status),errors)(required)
+
+            div.card.container-fluid.mt-5
+                .card-header GENERAL DATA
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","region","Region",(null===prj ? '' : prj.region),errors)(readonly required)
+                    .form-group.col-sm
+                        +renderInputField("text","province","Province",(null===prj ? '' : prj.province),errors)(readonly required)
+                    .form-group.col-sm
+                        +renderInputField("text","city","City",(null===prj ? '' : prj.city),errors)(readonly required)
+                    .form-group.col-sm
+                        +renderInputField("text","address","Address",(null===prj ? '' : prj.address),errors)(readonly required)
+                    .form-group.col-sm(hidden)
+                        +renderInputField("number","lat","Latitudine",(null===prj ? '' : prj.lat),errors)(step=0.00000001)
+                    .form-group.col-sm(hidden)
+                        +renderInputField("number","lng","Longitudine",(null===prj ? '' : prj.lng),errors)(step=0.00000001)
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","ownerparkarea","Owner's Parking Area",(null===prj ? '' : prj.ownerparkarea),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("text","contact","Contact",(null===prj ? '' : prj.contact),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.proponent_type,"proponent_type","Type of Proponent",(null===prj ? '' : prj.proponent_type),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("text","proponent_name","Proponent's Name",(null===prj ? '' : prj.proponent_name),errors)(required)
+                    
+                div.card.container-fluid.mt-5
+                    .card-header SET ADDRESS INFO
+                    .form-row
+                        .form-group.col-sm
+                            label Address: 
+                            input(align="center" id="pac-input" style="width: 400px; font-size: 15px; background-color: #fff; font-weight: 300; margin-left: 12px; text-overflow: ellipsis; padding: 0 11px 0 13px;" type="text" placeholder="Search Box")
+                            
+                    .form-row    
+                        .form-group.col-sm       
+                            .map-container
+                                #map(data-apiKey=gmapApiKey, data-config={markers:[{lat: (null===prj ? 45.4667971 : prj.lat), lng: (null===prj ? 9.1904984 : prj.lng), lbl: (null===prj ? '' : prj.name)}],zoom:16})
+                           
+                                    
+            div.card.container-fluid.mt-5
+                .card-header CONTRACTUAL DATA
+                .form-row
+                    .form-group.col-sm
+                        +renderSelectField({"Y":"Yes","N":"No"},"exclusivity","Exclusivity",(null===prj ? '' : prj.exclusivity),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.contract_type,"contract_type","Type of Contract",(null===prj ? '' : prj.contract_type),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.contract_duration,"contract_duration","Duration of Contract",(null===prj ? '' : prj.contract_duration),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("text","contract_renewal","Contract Renewal",(null===prj ? '' : prj.contract_renewal),errors)(required)
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","notes","Notes",(null===prj ? '' : prj.notes),errors)
+
+            div.card.container-fluid.mt-5
+                .card-header INPUT ON BOS
+                .form-row
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.evc_installation,"evc_installation","EVC Installation",(null===prj ? '' : prj.evc_installation),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.cable_routing_instal,"cable_routing_instal","Cable Routing Installation",(null===prj ? '' : prj.cable_routing_instal),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.cabling_routing,"cabling_routing","Cabling Routing",(null===prj ? '' : prj.cabling_routing),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.cabling_routing_type,"cabling_routing_type","Cabling Routing Type",(null===prj ? '' : prj.cabling_routing_type),errors)(required)
+                .form-row
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.evc_score,"number_evc","Number of EVC",(null===prj ? '' : prj.number_evc),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("number","distance_pod_evc","Distance POD-EVC",(null===prj ? '' : prj.distance_pod_evc),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("number","BEC_perc_BOS_CapEx","BEC's percentage on BOS CapEx",(null===prj ? '' : prj.BEC_perc_BOS_CapEx),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("number","BEC_cap_BOS_CapEx","BEC's cap on BOS CapEx",(null===prj ? '' : prj.BEC_cap_BOS_CapEx),errors)(required)
+
+            div.card.container-fluid.mt-5
+                .card-header OTHER INFORMATION
+                .form-row
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.area_type,"area_type","Type of Area",(null===prj ? '' : prj.area_type),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.site_type,"site_type","Type of Site",(null===prj ? '' : prj.site_type),errors)(required)
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.installation_type,"installation_type","Type of Installation",(null===prj ? '' : prj.installation_type),errors)(required)
+                    
+                .form-row
+                    .form-group.col-sm
+                        +renderSelectFieldfromObj(settingsprj.access_type,"access_type","Type of Access",(null===prj ? '' : prj.access_type),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("text","access_hours","Hours of Access",(null===prj ? '' : prj.access_hours),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("text","Nr_other_evcs_near","Nr. Other EVCs present within 30km",(null===prj ? '' : prj.Nr_other_evcs_near),errors)(required)
+                    
+
+            .form-row.mt-5
+                button.btn.btn-backend.ml-4(type='submit') Save

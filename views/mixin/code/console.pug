@@ -1,0 +1,24 @@
+mixin brython-console()
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src="http://brython.info/console.html"
+         scrolling="no"
+         width="75%"
+         height="165")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
+
+mixin js-console()
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src="https://jsconsole.com/"
+         width="75%"
+         height="165")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

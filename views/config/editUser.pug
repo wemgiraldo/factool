@@ -1,0 +1,53 @@
+extends ../layout
+
+include ../mixin/form/renderInputField.pug
+include ../mixin/form/renderSelectField.pug
+include ../mixin/form/renderCheckboxField.pug
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            if currentUser.roles >= 2
+                a(class="nav-link", href="/config") Back
+            else   
+                a(class="nav-link", href="/projects/active") Back
+
+block content
+  .row
+    .col-sm.d-flex.align-items-center.mt-3
+        .display-3.content-title.ml-5=title
+        if (user && user.id && user.id !== currentUser.id)
+            a.btn.btn-backend.ml-4(href="/config/user/"+user.id+"/delete" onclick="return confirm('Are you sure you want to delete user "+user.name+"?')") Delete
+
+  .row
+    .col-sm-12
+        form.mt-5.mr-5(method='POST' action='' form='userForm')
+            div.card.container-fluid.mt-5
+                .card-header GENERAL INFO
+                .form-row
+                    if currentUser.roles >= 2
+                        .form-group.col-sm.mr-auto
+                            +renderCheckboxField("enabled","Enable User",(null===user ? false : user.enabled),errors)
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","name","Full Name",(null===user ? '' : user.name),errors)(required)
+                    .form-group.col-sm
+                        +renderInputField("email","email","Email",(null===user ? '' : user.email),errors)(required)
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("password","password","New Password",null,errors)
+                    .form-group.col-sm
+                        +renderInputField("password","password2","Confirm Password",null,errors)
+                    
+            if currentUser.roles >= 2
+                div.card.container-fluid.mt-5
+                    .card-header ROLES
+                    .form-row
+                        .form-group.col-sm
+                            +renderSelectField({"0":"Read-Only","1":"Developer","2":"Administrator","3":"SuperAdmin"},"roles","Role",(null===user ? '' : user.roles),errors)(required)
+                        
+                
+            .form-row.mt-5
+                button.btn.btn-backend.ml-4(type='submit') Save

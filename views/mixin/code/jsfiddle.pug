@@ -1,0 +1,54 @@
+
+mixin jsfiddle(user, id)
+  - src = `https://jsfiddle.net/${user}/${id}/embedded/`
+  - if ("tabs" in attributes)
+    - tabs = attributes.tabs;
+    - delete attributes.tabs;
+  - else
+    - tabs = "js,html,css,result";
+  - src = src + tabs + "/"
+  - if ("theme" in attributes)
+    - theme = attributes.theme;
+    - delete attributes.theme;
+  - else
+    - theme = "light";
+  - src = src + theme + "/?";
+  - _first_color_param = false;
+  - if ("font_color" in attributes)
+    - font_color = attributes.font_color;
+    - delete attributes.font_color;
+    - src = src + "fontColor=" + font_color;
+    - _first_color_param = true;
+  - if ("accent_color" in attributes)
+    - accent_color = attributes.accent_color;
+    - delete attributes.accent_color;
+    - if (_first_color_param)
+      - src = src + "&"
+    - src = src + "accentColor=" + accent_color;
+    - _first_color_param = true;
+  - if ("code_background" in attributes)
+    - code_background = attributes.code_background;
+    - delete attributes.code_background;
+    - if (_first_color_param)
+      - src = src + "&"
+    - src = src + "codeBackground=" + code_background;
+    - _first_color_param = true;
+  - if ("menu_background" in attributes)
+    - menu_background = attributes.menu_background;
+    - delete attributes.menu_background;
+    - if (_first_color_param)
+      - src = src + "&"
+    - src = src + "menuBackground=" + menu_background;
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(src=`${src}`
+         allowpaymentrequest="true"
+         allowfullscreen="true"
+         width="100%"
+         height="400"
+         frameborder="0")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.

@@ -1,0 +1,24 @@
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header 
+        i.fa.fa-battery-half.mr-3
+        |
+        | Opened Projects
+    .card-body
+        p.card-text=(status && status.openprj!==null)?status.openprj:"NA"
+
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header
+        i.fa.fa-list-alt.mr-3
+        |
+        | Closed Projects
+    .card-body
+        p.card-text=(status && status.closedprj!==null)?status.closedprj:"NA"
+            
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header
+        i.fa.fa-signal.mr-3
+        |
+        | In Progress Projects
+    .card-body
+        p.card-text=(status && status.inprogr!==null)?status.inprogr:"NA"
+

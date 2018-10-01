@@ -1,0 +1,18 @@
+mixin dailymotion-video(id, autoplay=false)
+  - if (autoplay == true)
+    - _autoplay = 1
+  - else
+    - _autoplay = 0
+  - if ("alt" in attributes)
+    - alt = attributes.alt;
+    - delete attributes.alt;
+  - else
+    - alt = true;
+  iframe(frameborder="0"
+         width="480"
+         height="270"
+         src=`https://www.dailymotion.com/embed/video/${id}?autoPlay=${_autoplay}`
+         allowfullscreen="true"
+         allow="autoplay")&attributes(attributes)
+    - if (alt)
+      | Your browser does not support iframes.
