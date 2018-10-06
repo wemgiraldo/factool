@@ -27,13 +27,23 @@ router.get('/logout', function(req, res) {
 * DEFAULT ROUTE
 */
 router.get('/', function(req, res) {
-    res.redirect('/projects/active');
+    res.redirect('/company/list');
 });
 
 /* 
 * CONFIG
 */
 router.all('/config*', ensureAuthenticated, require('./config'));
+
+/* 
+* INVOICE IN
+*/
+router.all('/instructions*', ensureAuthenticated, require('./instructions'));
+
+/* 
+* INVOICE OUT
+*/
+router.all('/company*', ensureAuthenticated, require('./company'));
 
 // Simple route middleware to ensure user is authenticated.
 //  Use this route middleware on any resource that needs to be protected.  If

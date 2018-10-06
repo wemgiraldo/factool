@@ -1,0 +1,51 @@
+extends menu.pug
+
+block append scripts
+  script(src="/javascripts/list.js")
+
+block content
+    
+    .col-sm
+        select#year
+            option(selected)=moment().format('YYYY')
+            option=moment().add('years',1).format('YYYY')
+            option=moment().add('years',2).format('YYYY')
+            option=moment().add('years',3).format('YYYY')
+
+        select#month
+            each month,index in months
+                if index === moment().add('month',-1).format('M')
+                    option(value=index selected)=month
+                else
+                    option(value=index)=month
+
+    if type === "debtor"
+        .col-sm#listinstructionsD-container(data-idCompany=idCompany)
+            table.table.table-hover.mt-5(data-title='LISTADO DE EGRESOS')
+                thead
+                    tr
+                        th.id ID
+                        //th.payment_matrix Payment Matrix
+                        th.creditor Creditor
+                        th.debtor Debtor
+                        th.amount Amount
+                        th.amount_gross Amount Gross
+                        th.status Status
+                        th.status Status Billed
+                        th.status Status Paid
+                        th.is_paid Is Paid
+    else    
+        .col-sm#listinstructionsC-container(data-idCompany=idCompany)
+            table.table.table-hover.mt-5(data-title='LISTADO DE INGRESOS')
+                thead
+                    tr
+                        th.id ID
+                        //th.payment_matrix Payment Matrix
+                        th.creditor Creditor
+                        th.debtor Debtor
+                        th.amount Amount
+                        th.amount_gross Amount Gross
+                        th.status Status
+                        th.status Status Billed
+                        th.status Status Paid
+                        th.is_paid Is Paid

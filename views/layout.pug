@@ -1,5 +1,5 @@
 doctype html
-html(lang="en")
+html(lang="es")
   head
     title Mercatus Dev Tools
     link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css", integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO", crossorigin="anonymous")
@@ -9,26 +9,39 @@ html(lang="en")
 
     meta(name="viewport",content="width=device-width, initial-scale=1, shrink-to-fit=no")
     meta(charset="utf-8")
-    meta(name="description", content="BePower Mercatus Development Tools")
-    meta(name="keywords",content="mercatus, bepower, tools")
+    meta(name="description", content="FacTool")
+    meta(name="keywords",content="facturacion, be, building energy, chile, cen")
 
   body.backend
 
     block header
       header(role="navigation" class="navbar navbar-expand-lg navbar-dark")
         a(href="/",class="navbar-brand")
-          img(src="/img/becharge-logos.png",height="80")
+          img(src="/img/logo-be.png",height="80")
 
         button.navbar-toggler(type="button",data-toggle="collapse",data-target="#navbarSupportedContent",aria-expanded="false" aria-label="Toggle navigation")
             span(class="navbar-toggler-icon")
         div.collapse.navbar-collapse(id="navbarSupportedContent")
           ul(class="navbar-nav mr-auto")
             li(class="nav-item active")
-              a(class="nav-link",href="/") Projects
+              a(class="nav-link",href="/") Partecipantes
+            li(class="nav-item active")
+              a(class="nav-link",href="/instructions/list/?type=creditor&id=" + idCompany) Control de Ingresos
+            li(class="nav-item active")
+              a(class="nav-link",href="/instructions/list/?type=debtor&id=" + idCompany) Control de Egresos
+            li(class="nav-item active")
+              a(class="nav-link",href="/cmd/panel") CMD TEST
             
 
 
-          ul(class="navbar-nav ml-auto")    
+
+
+          ul(class="navbar-nav ml-auto")
+            li(class="nav-item")
+              select#idCompany
+                option 339
+                option 340
+
             li(class="nav-item")
               if currentUser.roles >= 2
                 a.nav-link(href="/config",data-toggle="tooltip",data-placement="top",title="Settings")
@@ -62,7 +75,7 @@ html(lang="en")
           .row
             .col-md-3.mr-auto
                 span.footer-heading
-                  a(href="https://www.bec.energy/",target="_blank") about
+                  a(href="https://buildingenergy.it/",target="_blank") about
             .col-md-3.ml-auto
                 span.footer-heading.d-flex Powered By 
                   a.ml-4(href="http://wemworld.it/", target="_blank")

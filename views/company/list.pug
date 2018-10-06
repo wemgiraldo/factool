@@ -1,0 +1,16 @@
+extends menu.pug
+
+block append scripts
+  script(src="/javascripts/list.js")
+
+block content
+
+    .col-sm#listcompany-container
+        table.table.table-hover.mt-5(data-title='PARTECIPANTES')
+            thead
+                tr
+                    th.id ID
+                    th Name
+                    th RUT
+                    th Created at
+                    th Updated at

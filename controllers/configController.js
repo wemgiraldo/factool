@@ -19,7 +19,7 @@ exports.listUser = [
 exports.deleteUser = [
     findUser,
     function (req, res) {
-        mercatusDb.deleteUser(req.profile, function(err){
+        factoolDb.deleteUser(req.profile, function(err){
             if (err){
                 req.flash("error","Error deleting user");
             }else{
@@ -55,7 +55,7 @@ exports.newUser_post = [
     body('email').isLength({ min: 1 }).withMessage('Email is required').isEmail().withMessage("Must be a valid email")
         .custom((value, { req }) => {
             return new Promise(function(resolve, reject) {
-                mercatusDb.findOneUser({email: value},function(err,user){
+                factoolDb.findOneUser({email: value},function(err,user){
                     if (!err && user) {
                         return reject('E-mail already in use');
                     }
@@ -80,7 +80,7 @@ exports.newUser_post = [
         delete req.body.password2;
         req.body.username=req.body.email;
         req.body.enabled=Boolean(req.body.enabled);
-        mercatusDb.hashPassword(req.body.password,function(err,hash){
+        factoolDb.hashPassword(req.body.password,function(err,hash){
 
             if (err){
                 logger.log(err,"err");
@@ -112,7 +112,7 @@ exports.newUser_post = [
         else {
             // Data from form is valid.
             //SAVE USER
-            mercatusDb.saveUser(user, function (err, rows, fields) {
+            factoolDb.saveUser(user, function (err, rows, fields) {
 
                 if (err) {
                     throw err;
@@ -138,7 +138,7 @@ exports.editUser_post = [
                 if (req.profile.email===value){
                     return resolve(true);
                 }
-                mercatusDb.findOneUser({email: value},function(err,user){
+                factoolDb.findOneUser({email: value},function(err,user){
                     if (!err && user) {
                         return reject('E-mail already in use');
                     }
@@ -165,7 +165,7 @@ exports.editUser_post = [
         req.body.username=req.body.email;
         req.body.enabled=Boolean(req.body.enabled);
         if (req.body.password && req.body.password.length>0){
-            mercatusDb.hashPassword(req.body.password,function(err,hash){
+            factoolDb.hashPassword(req.body.password,function(err,hash){
 
                 if (err){
                     logger.log(err,"err");
@@ -204,7 +204,7 @@ exports.editUser_post = [
         else {
             // Data from form is valid.
             //SAVE USER
-            mercatusDb.saveUser(user, function (err, rows, fields) {
+            factoolDb.saveUser(user, function (err, rows, fields) {
 
                 if (err) {
                     throw err;
@@ -298,7 +298,7 @@ function findUser(req, res, next) {
         options = { where: { id: req.params.userId } };
     }
 
-    mercatusDb.findUser(options, function (err, rows, fields) {
+    factoolDb.findUser(options, function (err, rows, fields) {
 
         if (err) {
             return next(err);

@@ -5,14 +5,14 @@ const LocalStrategy = require('passport-local');
 passport.use(new LocalStrategy(
     function(username, password, done) {
   
-      mercatusDb.findOneUser({ username: username }, function(err, user) {
+      factoolDb.findOneUser({ username: username }, function(err, user) {
         if (err) { return done(err); }
   
         if (!user) {
           return done(null, false, { message: 'Incorrect username.' });
         }
   
-        mercatusDb.isUserPasswordValid(user,password,function(res) {
+        factoolDb.isUserPasswordValid(user,password,function(res) {
           if (!res){
             return done(null, false, { message: 'Incorrect password.' });
           }
@@ -27,14 +27,14 @@ passport.use(new LocalStrategy(
   
   passport.serializeUser(function(user, done) {
 
-    mercatusDb.saveUserLogin(user, function(err){
+    factoolDb.saveUserLogin(user, function(err){
       done(err, user.id);
     });
 
   });
   
   passport.deserializeUser(function(id, done) {
-    mercatusDb.findOneUser({id: id}, function (err, user) {
+    factoolDb.findOneUser({id: id}, function (err, user) {
       done(err, user);
     });
   });

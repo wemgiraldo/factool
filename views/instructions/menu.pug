@@ -1,0 +1,11 @@
+extends ../layout
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+          if type === "creditor"
+            a(class="nav-link", href="/instructions/list/?type=creditor&id=" + idCompany) Listado de Ingresos
+          else
+            a(class="nav-link", href="/instructions/list/?type=debtor&id=" + idCompany) Listado de Egresos

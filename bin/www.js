@@ -11,17 +11,19 @@ mysql = require('mysql');
 moment = require('moment');
 fs = require("fs.extra");  // Oggetto per la lettura filesystem
 HigJS = require("../nodeLib/hig.js").HigJS;      // Higeco's Base Functions
-mercatusDb = require('./mercatusDb');
+factoolDb = require('.//factoolDb');
+XLSX = require('xlsx');
+cenAPI = require('../nodeLib/cen.js');
 
 httpServer = null;
 config = null;
+cen = null;
 
 configPath = "./config/config.json";
 
 /**
  *  Configuration
- */
-
+**/
 
 config = HigJS.str.toObj(fs.readFileSync(configPath));       // Lettura configurazione server
 
@@ -48,6 +50,7 @@ fs.watchFile(configPath, function () {
 
 initDbConnection();
 initServer();
+initCenAPI()
 
 function initServer() {
 
@@ -59,16 +62,16 @@ function initServer() {
 
   app.set('port', port);
   app.locals.gmapApiKey = config.vendor.gmapApiKey;
-
+  app.locals.idCompany = 339;
+  app.locals.moment = require('moment');
+  
   /**
    * Create HTTP server.
    */
 
   if (httpServer !== null) {
-    websocketServer.close();
     httpServer.close();
     httpServer = null;
-    websocketServer = null;
   }
   httpServer = http.createServer(app);
   httpServer.listen(port);
@@ -82,19 +85,24 @@ function initServer() {
 
 function initDbConnection() {
 
-  mercatusDb.connect(config.mysql, function (err) {
+  factoolDb.connect(config.mysql, function (err) {
 
-      if (err) {
-          logger.log("Error connection to db. Aborting..", "err");
-          process.exit(-1);
-      } else {
-          logger.log("Succesfully connected to db " + config.mysql.database + " on " + config.mysql.dbUser + "@" + config.mysql.dbHost, "inf");
-      }
+    if (err) {
+      logger.log("Error connection to db. Aborting..", "err");
+      process.exit(-1);
+    } else {
+      logger.log("Succesfully connected to db " + config.mysql.database + " on " + config.mysql.dbUser + "@" + config.mysql.dbHost, "inf");
+    }
 
   });
 }
 
 
+function initCenAPI() {
+
+  cen = new cenAPI(config);
+
+}
 
 /**
  * Event listener for HTTP server "error" event.
