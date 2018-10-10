@@ -4,26 +4,14 @@ block append scripts
   script(src="/javascripts/list.js")
 
 block content
-    
-    .col-sm
-        select#year
-            option(selected)=moment().format('YYYY')
-            option=moment().add('years',1).format('YYYY')
-            option=moment().add('years',2).format('YYYY')
-            option=moment().add('years',3).format('YYYY')
-
-        select#month
-            each month,index in months
-                if index === moment().add('month',-1).format('M')
-                    option(value=index selected)=month
-                else
-                    option(value=index)=month
 
     if type === "debtor"
         .col-sm#listinstructionsD-container(data-idCompany=idCompany)
             table.table.table-hover.mt-5(data-title='LISTADO DE EGRESOS')
                 thead
                     tr
+                        th 
+                            input(type="checkbox" name="select_all" value="1" id="table-select-all")
                         th.id ID
                         //th.payment_matrix Payment Matrix
                         th.creditor Creditor
@@ -31,14 +19,35 @@ block content
                         th.amount Amount
                         th.amount_gross Amount Gross
                         th.status Status
-                        th.status Status Billed
-                        th.status Status Paid
-                        th.is_paid Is Paid
+                        th.status_bill Status Billed
+                        th.status_paid Status Paid
+                        th.folio DTE Folio
+                        th.type_dte DTE Type
+                        th.accept_st DTE acceptance_status
+                        
     else    
         .col-sm#listinstructionsC-container(data-idCompany=idCompany)
+
+            select#year
+                option(selected)=moment().format('YYYY')
+                option=moment().add(1,'years').format('YYYY')
+                option=moment().add(2,'years').format('YYYY')
+                option=moment().add(3,'years').format('YYYY')
+
+            select#month
+                each month,index in months
+                    if index === moment().add(-1,'month').format('M')
+                        option(value=index selected)=month
+                    else
+                        option(value=index)=month
+
+            a(class="btn btn-backend m-3" id="createInvoice" ) Create Invoices
+
             table.table.table-hover.mt-5(data-title='LISTADO DE INGRESOS')
                 thead
-                    tr
+                    tr  
+                        th 
+                            input(type="checkbox" name="select_all" value="1" id="table-select-all")
                         th.id ID
                         //th.payment_matrix Payment Matrix
                         th.creditor Creditor
@@ -46,6 +55,8 @@ block content
                         th.amount Amount
                         th.amount_gross Amount Gross
                         th.status Status
-                        th.status Status Billed
-                        th.status Status Paid
-                        th.is_paid Is Paid
+                        th.status_bill Status Billed
+                        th.status_paid Status Paid
+                        th.folio DTE Folio
+                        th.type_dte DTE Type
+                        th.accept_st DTE acceptance_status

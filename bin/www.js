@@ -5,7 +5,7 @@
  */
 
 app = require('../app');
-debug = require('debug')('mercatus:server');
+debug = require('debug')('factools:server');
 http = require('http');
 mysql = require('mysql');
 moment = require('moment');
@@ -13,7 +13,9 @@ fs = require("fs.extra");  // Oggetto per la lettura filesystem
 HigJS = require("../nodeLib/hig.js").HigJS;      // Higeco's Base Functions
 factoolDb = require('.//factoolDb');
 XLSX = require('xlsx');
-cenAPI = require('../nodeLib/cen.js');
+CEN_API = require('../nodeLib/cen.js');
+FacturacionCL_API = require('../nodeLib/facturacion-cl.js');
+models = require('../models');
 
 httpServer = null;
 config = null;
@@ -50,7 +52,6 @@ fs.watchFile(configPath, function () {
 
 initDbConnection();
 initServer();
-initCenAPI()
 
 function initServer() {
 
@@ -61,10 +62,9 @@ function initServer() {
   var port = config.general.port;
 
   app.set('port', port);
-  app.locals.gmapApiKey = config.vendor.gmapApiKey;
   app.locals.idCompany = 339;
   app.locals.moment = require('moment');
-  
+
   /**
    * Create HTTP server.
    */
@@ -85,7 +85,7 @@ function initServer() {
 
 function initDbConnection() {
 
-  factoolDb.connect(config.mysql, function (err) {
+  /*factoolDb.connect(config.mysql, function (err) {
 
     if (err) {
       logger.log("Error connection to db. Aborting..", "err");
@@ -94,13 +94,22 @@ function initDbConnection() {
       logger.log("Succesfully connected to db " + config.mysql.database + " on " + config.mysql.dbUser + "@" + config.mysql.dbHost, "inf");
     }
 
+  });*/
+
+  models.sequelize.sync().then(function () {
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+    initAPI();
   });
+
 }
 
 
-function initCenAPI() {
+function initAPI() {
 
-  cen = new cenAPI(config);
+  cen = new CEN_API(config);
+  facturacion_cl = new FacturacionCL_API(config);
 
 }
 
@@ -135,8 +144,7 @@ function onError(error) {
 
 function checkConfig() {
 
-  if (!config || !config.mysql || !config.mysql.dbHost || !config.mysql.dbUser || !config.mysql.database || !config.mysql.dbPassword
-    || !config.general.port) {
+  if (!config || !config.general.port) {
     console.log("FATAL ERROR, Config file is not valid, error loading server configuration!");
     return false;
   } else {

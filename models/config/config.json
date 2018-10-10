@@ -1,0 +1,35 @@
+{
+  "development": {
+    "username": "root",
+    "password": "Birba2366!",
+    "database": "factool",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": {
+      "timestamps": false
+    },
+    "logging": false
+  },
+  "test": {
+    "username": "root",
+    "password": "Birba2366!",
+    "database": "factool",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": {
+      "timestamps": false
+    },
+    "logging": false
+  },
+  "production": {
+    "username": "root",
+    "password": "Birba2366!",
+    "database": "factool",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "define": {
+      "timestamps": false
+    },
+    "logging": false
+  }
+}

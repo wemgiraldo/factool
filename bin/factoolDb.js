@@ -68,7 +68,6 @@ exports.findInstructions = function (options, callback) {
     }
 
     options = Object.assign({
-        where: {},
         select: ["*"],
         order: { id: "ASC" }
     }, options);
@@ -86,8 +85,13 @@ exports.findInstructions = function (options, callback) {
                     query = query + field + "=" + options.where[field];
                     break;
                 case "string":
-                    query = query + field + "='" + options.where[field].replace("'", "") + "'";
-                    break;
+                    if (options.where[field].includes(",")) {
+                        query = query + field + " IN (" + options.where[field] + ")";
+                        break;
+                    } else {
+                        query = query + field + "='" + options.where[field].replace("'", "") + "'";
+                        break;
+                    }
                 case "object":
                     if (options.where[field] instanceof Date) {
                         query = query + field + "='" + moment(options.where[field]).format("Y-MM-DD HH:mm:ss") + "'";
@@ -100,6 +104,7 @@ exports.findInstructions = function (options, callback) {
             }
         }
     }
+
 
     query = query + " ORDER BY ";
     for (var i = 0; i < Object.keys(options.order).length; i++) {
@@ -603,11 +608,60 @@ exports.findTransactionTypes = function (options, callback) {
 
 }
 
+exports.findPaymentMatrices = function (options, callback) {
+
+    if (typeof (options) === "undefined" && typeof (callback) === "undefined") {
+        return callback(new Error("invalid argument. Find Evc expects an option Object and a callback."))
+    }
+
+    if (typeof (options) === "function" && typeof (callback) === "undefined") {
+        callback = options;
+        options = {};
+    }
+
+    options = Object.assign({
+        where: {},
+        select: ["*"],
+        order: { id: "ASC" }
+    }, options);
+
+    query = "SELECT " + options.select.join(",") + " FROM payment_matrices ";
+
+    if (options.where.length !== undefined) {
+        query = query + " WHERE ";
+        for (var i = 0; i < Object.keys(options.where).length; i++) {
+            var field = Object.keys(options.where)[i];
+
+            query = query + field + "='" + options.where[field] + "'";
+
+            if (i < Object.keys(options.where).length - 1) {
+                query = query + " AND ";
+            }
+        }
+    }
+
+    query = query + " ORDER BY ";
+    for (var i = 0; i < Object.keys(options.order).length; i++) {
+        var field = Object.keys(options.order)[i];
+
+        query = query + field + " " + options.order[field];
+
+        if (i < Object.keys(options.order).length - 1) {
+            query = query + " , ";
+        }
+    }
+
+    return db.get().query(query, callback);
+
+}
 
 
-exports.getLastCompanyTimestamp = function (callback) {
 
-    query = "SELECT MAX(created_ts) as lastRefresh FROM company";
+
+
+exports.getLastPaymentMatricesTimestamp = function (callback) {
+
+    query = "SELECT MAX(created_ts) as lastRefresh FROM payment_matrices";
     return db.get().query(query, callback);
 
 }
@@ -747,6 +801,91 @@ exports.saveInstructions = function (options, callback) {
 
     // campi DB
     query = "INSERT INTO instructions (";
+
+    for (var i = 0; i < Object.keys(options.values).length; i++) {
+        var index = Object.keys(options.values)[i];
+        for (var j = 0; j < Object.keys(options.values[index]).length; j++) {
+            var field = Object.keys(options.values[index])[j];
+            query = query + field;
+            if (j < Object.keys(options.values[index]).length - 1) {
+                query = query + ",";
+            }
+        }
+        break;
+    }
+
+    if (query.lastIndexOf(',') + 1 == query.length) {
+        query = query.substr(0, query.length - 1)
+    }
+    query = query + ")";
+
+    // valori DB
+    query = query + " VALUES "
+    for (var i = 0; i < Object.keys(options.values).length; i++) {
+        query = query + "(";
+        var index = Object.keys(options.values)[i];
+        for (var j = 0; j < Object.keys(options.values[index]).length; j++) {
+            var field = Object.keys(options.values[index])[j];
+
+            switch (typeof (options.values[index][field])) {
+                case "boolean":
+                    query = query + options.values[index][field];
+                    if (j < Object.keys(options.values[index]).length - 1) {
+                        query = query + ",";
+                    }
+                    break;
+                case "number":
+                    query = query + options.values[index][field];
+                    if (j < Object.keys(options.values[index]).length - 1) {
+                        query = query + ",";
+                    }
+                    break;
+                case "string":
+                    query = query + "'" + options.values[index][field].replace("'", "") + "'";
+                    if (j < Object.keys(options.values[index]).length - 1) {
+                        query = query + ",";
+                    }
+                    break;
+                case "object":
+                    if (options.values[index][field] instanceof Date) {
+                        query = query + "'" + moment(options.values[index][field]).format("Y-MM-DD HH:mm:ss") + "'";
+                    } else {
+                        query = query + "'" + JSON.stringify(options.values[index][field]) + "'";
+                    }
+                    if (j < Object.keys(options.values[index]).length - 1) {
+                        query = query + ",";
+                    }
+                    break;
+                case "undefined":
+                    query = query + "''";
+                    if (j < Object.keys(options.values[index]).length - 1) {
+                        query = query + ",";
+                    }
+                    break;
+            }
+        }
+        if (query.lastIndexOf(',') + 1 == query.length) {
+            query = query.substr(0, query.length - 1)
+        }
+        query = query + "),";
+    }
+
+    if (query.lastIndexOf(',') + 1 == query.length) {
+        query = query.substr(0, query.length - 1)
+    }
+
+    return db.get().query(query, callback);
+
+}
+
+exports.savePaymentMatrices = function (options, callback) {
+
+    if (typeof (options) === "undefined" && typeof (callback) === "undefined") {
+        return callback(new Error("invalid argument. Add Evc expects an option Object and a callback."))
+    }
+
+    // campi DB
+    query = "INSERT INTO payment_matrices (";
 
     for (var i = 0; i < Object.keys(options.values).length; i++) {
         var index = Object.keys(options.values)[i];

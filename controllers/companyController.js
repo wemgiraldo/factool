@@ -1,6 +1,8 @@
 const { body, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
+var models = require('../models');
+
 /* 
 *
 * COMPANIES CONTROLLERS
@@ -13,19 +15,19 @@ exports.companyList = [
     function (req, res) {
 
         var data = { data: [] };
-        for (var i = 0; i < req.data.length; i++) {
-            var company = req.data[i];
+        for (var i = 0; i < req.companies.length; i++) {
+            var company = req.companies[i];
             data.data.push([
                 company.id,
                 company.name,
                 company.rut,
-                //company.verification_code,
-                //company.business_name,
-                //company.commercial_business,
+                company.verification_code,
+                company.business_name,
+                company.commercial_business,
                 //company.dte_reception_email,
                 //company.bank_account,
                 //company.bank,
-                //company.commercial_address,
+                company.commercial_address,
                 //company.postal_address,
                 //company.manager,
                 //company.p_c_first_name,
@@ -54,15 +56,9 @@ exports.companyList = [
 
 function getCompanyList(req, res, next) {
 
-    factoolDb.findCompany(function (err, rows, fields) {
-
-        if (err) {
-            return next(err);
-        }
-
-        req.data = rows;
-
+    models.company.findAll().then(companies => {
+        req.companies = companies;
         return next();
+    })
 
-    });
 }
