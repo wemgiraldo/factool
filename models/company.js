@@ -105,8 +105,7 @@ module.exports = function (sequelize, DataTypes) {
 
   company.associate = (models) => {
     // associations can be defined here
-    //company.hasMany(models.instructions, {foreignKey: 'debtor'});
-    //company.hasMany(models.instructions, {foreignKey: 'debtor'});
+    company.belongsTo(models.banks, { foreignKey: "bank", as: "bank_info" });
   };
 
   return company;

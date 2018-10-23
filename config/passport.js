@@ -1,7 +1,6 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const saltRounds = 10;
-var models = require('../models');
 var bcrypt = require('bcrypt');
 
 //init passport, the authetication module

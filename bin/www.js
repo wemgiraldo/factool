@@ -11,11 +11,12 @@ mysql = require('mysql');
 moment = require('moment');
 fs = require("fs.extra");  // Oggetto per la lettura filesystem
 HigJS = require("../nodeLib/hig.js").HigJS;      // Higeco's Base Functions
-factoolDb = require('.//factoolDb');
-XLSX = require('xlsx');
 CEN_API = require('../nodeLib/cen.js');
 FacturacionCL_API = require('../nodeLib/facturacion-cl.js');
 models = require('../models');
+async = require("async");
+json2xls = require('json2xls');
+
 
 httpServer = null;
 config = null;
@@ -85,21 +86,7 @@ function initServer() {
 
 function initDbConnection() {
 
-  /*factoolDb.connect(config.mysql, function (err) {
-
-    if (err) {
-      logger.log("Error connection to db. Aborting..", "err");
-      process.exit(-1);
-    } else {
-      logger.log("Succesfully connected to db " + config.mysql.database + " on " + config.mysql.dbUser + "@" + config.mysql.dbHost, "inf");
-    }
-
-  });*/
-
   models.sequelize.sync().then(function () {
-    /**
-     * Listen on provided port, on all network interfaces.
-     */
     initAPI();
   });
 
@@ -110,7 +97,7 @@ function initAPI() {
 
   cen = new CEN_API(config);
   facturacion_cl = new FacturacionCL_API(config);
-
+  
 }
 
 /**
@@ -145,13 +132,13 @@ function onError(error) {
 function checkConfig() {
 
   if (!config || !config.general.port) {
-    console.log("FATAL ERROR, Config file is not valid, error loading server configuration!");
+    logger.log("FATAL ERROR, Config file is not valid, error loading server configuration!");
     return false;
   } else {
 
     // LOG defaults
     if (!config.debug.LOG) {
-      console.log("###  MISSING LOG config, using default one.", "war");
+      logger.log("###  MISSING LOG config, using default one.", "war");
       config.debug.LOG = { level: "dbg", file: false, stdout: true, color: true, maxLogLength: 1000 };
     }
 

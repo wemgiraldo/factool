@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('dte', {
+  const dte = sequelize.define('dte', {
     id: {
       type: DataTypes.BIGINT,
       allowNull: false,
@@ -90,4 +90,11 @@ module.exports = function (sequelize, DataTypes) {
         }
       ]
     });
+
+  dte.associate = (models) => {
+    // associations can be defined here
+  };
+
+  return dte;
+  
 };

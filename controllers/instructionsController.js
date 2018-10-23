@@ -2,15 +2,13 @@ const { body, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 const Sequelize = require('sequelize');
 const op = Sequelize.Op;
+
 const operatorsAliases = {
     $eq: op.eq,
     $or: op.or,
     $between: op.between
 }
 
-
-var async = require("async");
-var models = require('../models');
 
 /* 
 *
@@ -45,6 +43,7 @@ exports.instructionsList = [
         next();
     },
     getInstructionsList,
+    getPaymentMatricesList,
     getDteList,
     getTypes,
     function (req, res) {
@@ -53,17 +52,18 @@ exports.instructionsList = [
 
         for (var i = 0; i < req.instructions.length; i++) {
             var ingr = req.instructions[i];
-            var dte = getDteById(req.dtes, ingr.id_cen)
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
             data.data.push([
                 "",
                 ingr.id_cen,
-                //ingr.payment_matrix,
+                payM.billingWindow.billingType.title,
                 ingr.creditor_info.name,
                 ingr.debtor_info.name,
                 ingr.amount,
                 ingr.amount_gross,
                 //ingr.closed,
-                ingr.status,
+                //ingr.status,
                 getBillingStById(req.billing_status_type, ingr.status_billed),
                 getPaymentStById(req.payment_status_type, ingr.status_paid),
                 //ingr.resolution,
@@ -76,7 +76,9 @@ exports.instructionsList = [
                 //ingr.updated_ts,
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
-                (dte !== undefined) ? getDteAcceptStById(req.dte_acceptance_status, dte.acceptance_status) : ""
+                (dte !== undefined) ? dte.emission_file : "",
+                (dte !== undefined) ? dte.acceptance_dt : "",
+                (dte !== undefined) ? getDteAcceptStById(req.dte_acceptance_status, parseInt(dte.acceptance_status)) : ""
 
             ]);
         }
@@ -103,23 +105,283 @@ exports.instructionsList = [
 
     }]
 
+/* LIST OF NOMINA DE PAGOS */
+exports.nominaPagos = [
+    function (req, res, next) {
+        req.id = parseInt(req.query.id);
+        req.type = req.query.type;
+
+        if (req.query.month === undefined && req.query.year === undefined) {
+            var date = new Date();
+            req.month = date.getMonth();
+            req.year = date.getFullYear();
+        } else {
+            req.month = parseInt(req.query.month);
+            req.year = parseInt(req.query.year);
+        }
+
+        req.dateFrom = new Date(req.year, req.month - 1, 1);
+        req.dateTo = new Date(req.year, req.month, 0);
+
+        req.filter = {};
+        req.filter[req.type] = req.id;
+        req.filter['created_ts'] = {
+            $between: [req.dateFrom, req.dateTo]
+        }
+
+        next();
+    },
+    getInstructionsList,
+    getPaymentMatricesList,
+    getDteList,
+    getTypes,
+    function (req, res) {
+
+        var data = { data: [] };
+
+        for (var i = 0; i < req.instructions.length; i++) {
+            var ingr = req.instructions[i];
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
+            //if (parseInt(ingr.status_paid) === 1) {
+            data.data.push([
+                "",
+                ingr.id_cen,
+                payM.billingWindow.billingType.title,
+                ingr.creditor_info.name,
+                ingr.debtor_info.name,
+                ingr.amount,
+                ingr.amount_gross,
+                //ingr.closed,
+                //ingr.status,
+                getBillingStById(req.billing_status_type, ingr.status_billed),
+                getPaymentStById(req.payment_status_type, ingr.status_paid),
+                //ingr.resolution,
+                //ingr.max_payment_date,
+                //ingr.informed_paid_amount,
+                //ingr.is_paid,
+                //ingr.aux_data_payment_matrix_natural_key,
+                //ingr.aux_data_payment_matrix_concept,
+                //ingr.created_ts,
+                //ingr.updated_ts,
+                (dte !== undefined) ? dte.folio : "",
+                (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
+                (dte !== undefined) ? dte.acceptance_dt : "",
+                (dte !== undefined) ? getDteAcceptStById(req.dte_acceptance_status, parseInt(dte.acceptance_status)) : ""
+            ]);
+            //}
+        }
+
+        if (req.xhr) {
+            return res.send(data);
+        }
+
+        req.months = {};
+        req.months[1] = "January";
+        req.months[2] = "February";
+        req.months[3] = "March";
+        req.months[4] = "April";
+        req.months[5] = "May";
+        req.months[6] = "June";
+        req.months[7] = "July";
+        req.months[8] = "August";
+        req.months[9] = "September";
+        req.months[10] = "October";
+        req.months[12] = "November";
+        req.months[13] = "December";
+
+        return res.render("instructions/nominapagos", { type: req.type, months: req.months });
+
+    }]
 
 /* CREATE INVOICEs */
 exports.createInvoice = [
     function (req, res, next) {
 
-        var list = req.body.list.split(",");
+        if (req.body.list === "") {
+            next();
+        }
+        var lists = req.body.list.split(",");
 
-        for (var i = 0; i < list.length; i++) {
-            var instruction = list[i];
-            models.instructions.findAll({ where: { id_cen: instruction }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
+        asyncLoop(lists.length, function (loop) {
+            id = lists[loop.iteration()];
+
+            models.instructions.findAll({ where: { id_cen: id }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
                 req.instruction = instr[0];
-                models.payment_matrices.findAll({ where: { id_cen: instr[0].payment_matrix }, limit: 1, include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
+                models.payment_matrices.findAll({ where: { id_cen: req.instruction.payment_matrix }, limit: 1, include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
                     req.payment_matrix = payment_matrix[0];
-                    facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix);
+                    facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix, function (err, result) {
+                        if (err) return loop.error(err);
+                        logger.log("Invoice n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
+                        return loop.next();
+                    });
                 });
             });
+        },
+            function (err) {
+                if (err) logger.log(err);
+                next();
+            });
+    },
+    function (req, res) {
+        cen.refreshData("InstructionsC");
+        cen.refreshData("DteC");
+        return res.send("Invoices created!");
+    }
+]
+
+/* CREATE NOMINA PAGO */
+exports.createNominaPago = [
+    getDteList,
+    function (req, res, next) {
+
+        req.toXls = [];
+
+        if (req.body.list === "") {
+            next();
         }
+        var lists = req.body.list.split(",");
+
+        async.forEachOf(lists, function (value, key, callback) {
+            models.instructions.findAll({ where: { id_cen: lists[key] }, limit: 1, include: [{ model: models.company, as: "creditor_info", include: [{ model: models.banks, as: "bank_info" }] }] }).then(instr => {
+                var dte = getDteById(req.dtes, instr[0].id_cen);
+                if (!dte) return callback();
+
+                req.toXls.push([
+                    2,
+                    instr[0].rut + instr[0].verification_code,
+                    instr[0].creditor_info.business_name,
+                    instr[0].creditor_info.bank_account,
+                    instr[0].amount_gross,
+                    instr[0].creditor_info.bank_info.type,
+                    instr[0].creditor_info.bank_info.sbif
+                ]);
+
+                req.toXls.push([
+                    3,
+                    dte.folio,
+                    1,
+                    moment().format("YYYYMMDD"),
+                    instr[0].amount_gross,
+                    "",
+                    ""
+                ]);
+
+                return callback();
+            });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res, next) {
+        var xls = json2xls(req.toXls);
+        fs.writeFileSync('./public/nomina_pagos/nominaPagos_' + moment().format("yyyyMMddHHmmss") + '.xls', xls, 'binary');
+        next();
+    },
+    function (req, res) {
+        return res.send("Nomina de pagos created!");
+    }
+]
+
+/* CREATE PAYMENT */
+exports.createPayment = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            next();
+        }
+        var lists = req.body.list.split(",");
+
+        asyncLoop(lists.length, function (loop) {
+            id = lists[loop.iteration()];
+
+            models.instructions.findAll({ where: { id_cen: id }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
+                req.instruction = instr[0];
+                models.payment_matrices.findAll({ where: { id_cen: req.instruction.payment_matrix }, limit: 1, include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
+                    req.payment_matrix = payment_matrix[0];
+                    facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix, function (err, result) {
+                        if (err) return loop.error(err);
+                        logger.log("Payment n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
+                        return loop.next();
+                    });
+                });
+            })
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        }
+        );
+    },
+    function (req, res) {
+        cen.refreshData("InstructionsD");
+        return res.send("Invoices created!");
+    }
+]
+
+/* ACCEPT INVOICEs */
+exports.acceptInvoice = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            next();
+        }
+        var lists = req.body.list.split(",");
+
+        asyncLoop(lists.length, function (loop) {
+            id = lists[loop.iteration()];
+
+            models.dte.findAll({ where: { instruction: id }, limit: 1 }).then(dte => {
+                if (dte.length === 0) return loop.error("no DTE associated to the Instruction:" + id);
+                req.dte = dte[0];
+                cen.postAcceptedDte(req.dte, function (err, result) {
+                    if (err) return loop.error(err);
+                    logger.log("Invoice n°: " + req.dte.folio + " accepted into CEN!");
+                    return loop.next();
+                });
+            });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res) {
+        cen.refreshData("InstructionsD");
+        cen.refreshData("DteD");
+        return res.send("Invoices accepted!");
+    }
+]
+
+/* REJECT INVOICEs */
+exports.rejectInvoice = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            next();
+        }
+        var lists = req.body.list.split(",");
+
+        asyncLoop(lists.length, function (loop) {
+            id = lists[loop.iteration()];
+
+            models.dte.findAll({ where: { instruction: id }, limit: 1 }).then(dte => {
+                if (dte.length === 0) return loop.error("no DTE associated to the Instruction:" + id);
+                req.dte = dte[0];
+                cen.postRejectedDte(req.dte, function (err, result) {
+                    if (err) return loop.error(err);
+                    logger.log("Invoice n°: " + req.dte.folio + " rejected into CEN!");
+                    return loop.next();
+                });
+            })
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res) {
+        cen.refreshData("InstructionsD");
+        cen.refreshData("DteD");
+        return res.send("Invoices rejected!");
     }
 ]
 
@@ -150,6 +412,15 @@ function getDteAcceptStById(dteAcceptSt, id) {
 
 }
 
+function getPayMxById(payment_matrix, id) {
+
+    for (var i = 0; i < payment_matrix.length; i++) {
+        var payM = payment_matrix[i];
+        if (payM.id_cen === id) return payM;
+    }
+
+}
+
 function getBillingStById(billingSt, id) {
 
     for (var i = 0; i < billingSt.length; i++) {
@@ -175,6 +446,14 @@ function getInstructionsList(req, res, next) {
         return next();
     })
 
+}
+
+function getPaymentMatricesList(req, res, next) {
+
+    models.payment_matrices.findAll({ include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
+        req.payment_matrix = payment_matrix;
+        return next();
+    })
 }
 
 function getDteList(req, res, next) {
@@ -214,8 +493,44 @@ function getTypes(req, res, next) {
             });
         }
     ], function (error, success) {
-        if (error) { alert('Something is wrong!'); }
+        if (error) { logger.log('Something is wrong!'); }
         next();
     });
+}
 
+function asyncLoop(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        next: function () {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+
+        error: function (err) {
+            done = true;
+            callback(err);
+        },
+
+        iteration: function () {
+            return index - 1;
+        },
+
+        break: function () {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
 }

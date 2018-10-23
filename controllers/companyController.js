@@ -1,8 +1,6 @@
 const { body, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
-var models = require('../models');
-
 /* 
 *
 * COMPANIES CONTROLLERS

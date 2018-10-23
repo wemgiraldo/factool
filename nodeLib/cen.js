@@ -1,19 +1,214 @@
 var request = require('request');
-var models = require('../models');
+
+const fs = require('fs');
 
 class CEN {
 
     constructor(config) {
 
-        this.endpoint = "https://ppagos-sen.coordinadorelectrico.cl";
-        this.endpointTest = "https://staging-ppagos-sen.coordinadorelectrico.cl";
-        this.config = config;
+        var test = true;
+        if (test) {
+            this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
+        } else {
+            this.endpoint = "https://ppagos-sen.coordinadorelectrico.cl";
+        }
 
-        //attivo funzione di refresh dei dati ogni X minuti
+        this.config = config;
+        this.username = this.config.cenAPI.username;
+        this.password = this.config.cenAPI.password;
+        this.authtoken;
+
+        // GET AUTH TOKEN
+        this.getToken(this.username, this.password);
+
+        // GET DATA TYPES
+        //this.refreshDataTypes();
+
+        // REFRESH DATA EACH 60min
         //this.refreshData();
+    }
+
+    getFileFromUrl(url, path, callback) {
+        var fs = require('fs');
+        request
+            .get(url)
+            .pipe(fs.createWriteStream(path))
+            .on('finish', function () {
+                callback(path);
+            });
+    }
+
+    putAuxiliaryFiles(data, callback) {
+
+        var fs = require('fs');
+        var path = './public/invoice/pdf/F' + data.folio + 'T' + data.type + '.pdf';
+
+        this.getFileFromUrl(data.urlCedible, path, function () {
+
+            request({
+                method: 'PUT',
+                preambleCRLF: true,
+                postambleCRLF: true,
+                headers: {
+                    'Authorization': 'Token ' + cen.authtoken,
+                    'Content-Disposition': 'attachment; filename=F' + data.folio + 'T' + data.type + '.pdf'
+                },
+                uri: cen.endpoint + "/api/v1/resources/auxiliary-files/",
+                multipart: [
+                    {
+                        'content-type': 'application/pdf',
+                        body: fs.createReadStream(path)
+                    }
+                ]
+            }, function (err, res, body) {
+                if (err) return callback(err, null, null);
+                var result = JSON.parse(body);
+                return callback(null, result.invoice_file_id, result.file_url);
+            });
+        });
+    }
+
+    postCreateDte(data, callback) {
+
+        var create_at = new Date(data.created_at);
+
+        var dataString = {
+            instruction: data.instruction,
+            type_sii_code: data.type,
+            folio: data.folio,
+            gross_amount: data.gross_amount,
+            net_amount: data.net_amount,
+            reported_by_creditor: true,
+            emission_dt: moment(create_at).format("Y-M-D"),
+            emission_file: data.invoice_file_id_cen,
+            emission_erp_a: "",
+            emission_erp_b: "",
+            reception_dt: moment(create_at).format("Y-M-D"),
+            reception_erp: "",
+            //acceptance_dt: "",
+            acceptance_erp: "",
+            acceptance_status: ""
+        }
+
+        request.post({
+            headers: {
+                'Authorization': 'Token ' + this.authtoken
+            },
+            url: this.endpoint + '/api/v1/operations/dtes/create/',
+            formData: { data: JSON.stringify(dataString) }
+        }, function (err, res, body) {
+            if (err) return callback(err, false)
+            var result = JSON.parse(body);
+            if (result.errors.length) return callback(result.errors, false)
+            return callback(null, true);
+        });
+
 
     }
 
+    postAcceptedDte(data, callback) {
+
+        var accepted_at = new Date();
+
+        var dataString = {
+            folio: data.folio,
+            gross_amount: data.gross_amount,
+            net_amount: data.net_amount,
+            reported_by_creditor: false,
+            acceptance_dt: moment(accepted_at).format("Y-M-D"),
+            acceptance_erp: "",
+            acceptance_status: 1
+        }
+
+        request.post({
+            headers: {
+                'Authorization': 'Token ' + this.authtoken
+            },
+            url: this.endpoint + '/api/v1/operations/dtes/' + data.id_cen + '/edit/',
+            formData: { data: JSON.stringify(dataString) }
+        }, function (err, res, body) {
+            if (err) return callback(err, false)
+            var result = JSON.parse(body);
+            if (result.errors.length) return callback(result.errors, false)
+            return callback(null, true);
+        });
+
+    }
+
+    postRejectedDte(data, callback) {
+
+        var rejected_at = new Date();
+
+        var dataString = {
+            folio: data.folio,
+            gross_amount: data.gross_amount,
+            net_amount: data.net_amount,
+            reported_by_creditor: false,
+            acceptance_dt: moment(rejected_at).format("Y-M-D"),
+            acceptance_erp: "",
+            acceptance_status: 2
+        }
+
+        request.post({
+            headers: {
+                'Authorization': 'Token ' + this.authtoken
+            },
+            url: this.endpoint + '/api/v1/operations/dtes/' + data.id_cen + '/edit/',
+            formData: { data: JSON.stringify(dataString) }
+        }, function (err, res, body) {
+            if (err) return callback(err, false)
+            var result = JSON.parse(body);
+            if (result.errors.length) return callback(result.errors, false)
+            return callback(null, true);
+        });
+
+    }
+
+    postCreatePayment(data, callback) {
+
+        var create_at = new Date(data.created_at);
+
+        var dataString = {
+            debtor: data.debtor,
+            creditor: data.creditor,
+            amount: data.amount,
+            payment_dt: data.payment_dt,
+            transaction_type: data.transaction_type,
+            actual_collector: data.actual_collector
+        }
+
+        request.post({
+            headers: {
+                'Authorization': 'Token ' + this.authtoken
+            },
+            url: this.endpoint + '/api/v1/operations/dtes/create/',
+            formData: { data: JSON.stringify(dataString) }
+        }, function (err, res, body) {
+            if (err) return callback(err, false)
+            var result = JSON.parse(body);
+            if (result.errors.length) return callback(result.errors, false)
+            return callback(null, true);
+        });
+
+    }
+
+    getToken(username, password, callback) {
+
+        request.post({
+            headers: { 'content-type': 'application/json' },
+            url: this.endpoint + '/api/token-auth/',
+            json: {
+                "username": username,
+                "password": password
+            }
+        }, function (error, response, body) {
+            if (error) {
+                console.log('error:', error); // Print the error if one occurred
+                callback(error);
+            }
+            cen.authtoken = body.token;
+        });
+    }
 
     getBillingStatusType(filters, callback) {
 
@@ -340,357 +535,322 @@ class CEN {
         });
     }
 
+    // REFRESH DATA TYPES
+
+    refreshDataTypes() {
+
+        var me = this;
+
+        logger.log("START GET DATA TYPES");
+
+        async.parallel([
+            function (callback) {
+                // GET BillingStatusType DATA
+                me.getBillingStatusType({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            name: resp.results[key].name,
+                            natural_key: resp.results[key].natural_key
+                        }
+                        updateOrCreate(models.billing_status_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET PaymentStatusType DATA
+                me.getPaymentStatusType({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            name: resp.results[key].name,
+                            natural_key: resp.results[key].natural_key
+                        }
+                        updateOrCreate(models.payment_status_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET Banks DATA
+                me.getBanks({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            code: resp.results[key].code,
+                            name: resp.results[key].name,
+                            sbif: resp.results[key].sbif,
+                            type: resp.results[key].type
+                        }
+                        updateOrCreate(models.banks, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET BillingType DATA
+                me.getBillingType({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            natural_key: resp.results[key].natural_key,
+                            title: resp.results[key].title,
+                            system_prefix: resp.results[key].system_prefix,
+                            description_prefix: resp.results[key].description_prefix,
+                            payment_window: resp.results[key].payment_window,
+                            department: resp.results[key].department,
+                            enabled: resp.results[key].enabled
+                        }
+                        updateOrCreate(models.billing_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET DteAcceptanceStatus DATA
+                me.getDteAcceptanceStatus({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            code: resp.results[key].code,
+                            name: resp.results[key].name
+                        }
+                        updateOrCreate(models.dte_acceptance_status, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET DteTypes DATA
+                me.getDteTypes({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            code: resp.results[key].code,
+                            name: resp.results[key].name,
+                            sii_code: resp.results[key].sii_code,
+                            factor: resp.results[key].factor
+                        }
+                        updateOrCreate(models.dte_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET PaymentDueType DATA
+                me.getPaymentDueType({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            name: resp.results[key].name,
+                            natural_key: resp.results[key].natural_key
+                        }
+                        updateOrCreate(models.payment_due_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET TransactionTypes DATA
+                me.getTransactionTypes({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            code: resp.results[key].code,
+                            name: resp.results[key].name
+                        }
+                        updateOrCreate(models.transaction_type, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            }
+        ],
+            // optional callback
+            function (err, results) {
+                if (err) return logger.log("GET DATA TYPES - NOT OK: " + err);
+                return logger.log("GET DATA TYPES - OK");
+            });
+
+    }
+
     // REFRESH DATA
 
-    refreshData() {
+    refreshData(options) {
 
-        // GET BillingStatusType DATA
-        this.getBillingStatusType({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    name: resp.results[i].name,
-                    natural_key: resp.results[i].natural_key
+        var me = this;
+
+        if (!options) {
+            logger.log("START GET DATA");
+
+            async.parallel([
+                function (callback) {
+                    updateCompany(me, { limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateInstructions(me, { creditor: 339, limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateInstructions(me, { debtor: 339, limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateDte(me, { creditor: 339, limit: 10000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateDte(me, { debtor: 339, limit: 10000, offset: 0 }, function () {
+                        callback();
+                    });
                 }
-                updateOrCreate(models.billing_status_type, { id: data.id }, data);
+            ],
+                // optional callback
+                function (err, results) {
+                    if (err) return logger.log("GET DATA - NOT OK: " + err);
+                    return logger.log("GET DATA - OK");
+                });
+
+        } else {
+            logger.log("START GET DATA " + options);
+
+            switch (options) {
+                case "Company":
+                    updateCompany(me, { limit: 5000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "BillingWindows":
+                    updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "InstructionsC":
+                    updateInstructions(me, { creditor: 339, limit: 5000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "InstructionsD":
+                    updateInstructions(me, { debtor: 339, limit: 5000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "PaymentMatrices":
+                    updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "DteC":
+                    updateDte(me, { creditor: 339, limit: 10000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
+                case "DteD":
+                    updateDte(me, { debtor: 339, limit: 10000, offset: 0 }, function () {
+                        return logger.log("GET DATA " + options + " - OK");
+                    });
+                    break;
             }
-        });
 
-        // GET Company DATA
-        this.getCompany({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    name: resp.results[i].name,
-                    rut: resp.results[i].rut,
-                    verification_code: resp.results[i].verification_code,
-                    business_name: resp.results[i].business_name,
-                    commercial_business: resp.results[i].commercial_business,
-                    dte_reception_email: resp.results[i].dte_reception_email,
-                    bank_account: resp.results[i].bank_account,
-                    bank: resp.results[i].bank,
-                    commercial_address: resp.results[i].commercial_address,
-                    postal_address: resp.results[i].postal_address,
-                    manager: resp.results[i].manager,
-                    p_c_first_name: resp.results[i].payments_contact ? resp.results[i].payments_contact.first_name : "",
-                    p_c_last_name: resp.results[i].payments_contact ? resp.results[i].payments_contact.last_name : "",
-                    p_c_address: resp.results[i].payments_contact ? resp.results[i].payments_contact.address : "",
-                    p_c_phones: resp.results[i].payments_contact ? resp.results[i].payments_contact.phones.toString() : "",
-                    p_c_email: resp.results[i].payments_contact ? resp.results[i].payments_contact.email : "",
-                    b_c_first_name: resp.results[i].bills_contact ? resp.results[i].bills_contact.first_name : "",
-                    b_c_last_name: resp.results[i].bills_contact ? resp.results[i].bills_contact.last_name : "",
-                    b_c_address: resp.results[i].bills_contact ? resp.results[i].bills_contact.address : "",
-                    b_c_phones: resp.results[i].bills_contact ? resp.results[i].bills_contact.phones.toString() : "",
-                    b_c_email: resp.results[i].bills_contact ? resp.results[i].bills_contact.email : "",
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.company, { id: data.id }, data);
-            }
-        });
-
-
-
-        // GET PaymentStatusType DATA
-        this.getPaymentStatusType({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    name: resp.results[i].name,
-                    natural_key: resp.results[i].natural_key
-                }
-                updateOrCreate(models.payment_status_type, { id: data.id }, data);
-            }
-        });
-
-        // GET Banks DATA
-        this.getBanks({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    code: resp.results[i].code,
-                    name: resp.results[i].name,
-                    sbif: resp.results[i].sbif,
-                    type: resp.results[i].type
-                }
-                updateOrCreate(models.banks, { id: data.id }, data);
-            }
-        });
-
-
-        // GET BillingType DATA
-        this.getBillingType({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    natural_key: resp.results[i].natural_key,
-                    title: resp.results[i].title,
-                    system_prefix: resp.results[i].system_prefix,
-                    description_prefix: resp.results[i].description_prefix,
-                    payment_window: resp.results[i].payment_window,
-                    department: resp.results[i].department,
-                    enabled: resp.results[i].enabled
-                }
-                updateOrCreate(models.billing_type, { id: data.id }, data);
-            }
-        });
-
-        // GET BillingWindows DATA
-        this.getBillingWindows({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    natural_key: resp.results[i].natural_key,
-                    billing_type: resp.results[i].billing_type,
-                    periods: resp.results[i].periods.toString(),
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.billing_windows, { id: data.id }, data);
-            }
-        });
-
-        // GET DteAcceptanceStatus DATA
-        this.getDteAcceptanceStatus({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    code: resp.results[i].code,
-                    name: resp.results[i].name
-                }
-                updateOrCreate(models.dte_acceptance_status, { id: data.id }, data);
-            }
-        });
-
-        // GET DteTypes DATA
-        this.getDteTypes({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    code: resp.results[i].code,
-                    name: resp.results[i].name,
-                    sii_code: resp.results[i].sii_code,
-                    factor: resp.results[i].factor
-                }
-                updateOrCreate(models.dte_type, { id: data.id }, data);
-            }
-        });
-
-        // GET PaymentDueType DATA
-        this.getPaymentDueType({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    name: resp.results[i].name,
-                    natural_key: resp.results[i].natural_key
-                }
-                updateOrCreate(models.payment_due_type, { id: data.id }, data);
-            }
-        });
-
-        // GET TransactionTypes DATA
-        this.getTransactionTypes({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id: resp.results[i].id,
-                    code: resp.results[i].code,
-                    name: resp.results[i].name
-                }
-                updateOrCreate(models.transaction_type, { id: data.id }, data);
-            }
-        });
-
-        // GET Instructions Debtor DATA
-        this.getInstructions({ debtor: 339, limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id_cen: resp.results[i].id,
-                    payment_matrix: resp.results[i].payment_matrix,
-                    creditor: resp.results[i].creditor,
-                    debtor: resp.results[i].debtor,
-                    amount: resp.results[i].amount,
-                    amount_gross: resp.results[i].amount_gross,
-                    closed: resp.results[i].closed === false ? "false" : "true",
-                    status: resp.results[i].status,
-                    status_billed: resp.results[i].status_billed,
-                    status_paid: resp.results[i].status_paid,
-                    resolution: resp.results[i].resolution,
-                    max_payment_date: resp.results[i].max_payment_date,
-                    informed_paid_amount: resp.results[i].informed_paid_amount,
-                    is_paid: resp.results[i].is_paid,
-                    aux_data_payment_matrix_natural_key: resp.results[i].aux_data_payment_matrix_natural_key,
-                    aux_data_payment_matrix_concept: resp.results[i].aux_data_payment_matrix_concept,
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.instructions, { id_cen: data.id_cen }, data);
-            }
-        });
-
-        // GET Instructions Creditor DATA
-        this.getInstructions({ creditor: 339, limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id_cen: resp.results[i].id,
-                    payment_matrix: resp.results[i].payment_matrix,
-                    creditor: resp.results[i].creditor,
-                    debtor: resp.results[i].debtor,
-                    amount: resp.results[i].amount,
-                    amount_gross: resp.results[i].amount_gross,
-                    closed: resp.results[i].closed === false ? "false" : "true",
-                    status: resp.results[i].status,
-                    status_billed: resp.results[i].status_billed,
-                    status_paid: resp.results[i].status_paid,
-                    resolution: resp.results[i].resolution,
-                    max_payment_date: resp.results[i].max_payment_date,
-                    informed_paid_amount: resp.results[i].informed_paid_amount,
-                    is_paid: resp.results[i].is_paid,
-                    aux_data_payment_matrix_natural_key: resp.results[i].aux_data_payment_matrix_natural_key,
-                    aux_data_payment_matrix_concept: resp.results[i].aux_data_payment_matrix_concept,
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.instructions, { id_cen: data.id_cen }, data);
-            }
-        });
-
-        // GET PaymentMatrices DATA
-        this.getPaymentMatrices({ limit: 5000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id_cen: resp.results[i].id,
-                    auxiliary_data: resp.results[i].auxiliary_data.toString(),
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts,
-                    payment_type: resp.results[i].payment_type,
-                    version: resp.results[i].version,
-                    payment_file: resp.results[i].payment_file,
-                    letter_code: resp.results[i].letter_code,
-                    letter_year: resp.results[i].letter_year,
-                    letter_file: resp.results[i].letter_file,
-                    matrix_file: resp.results[i].matrix_file,
-                    publish_date: resp.results[i].publish_date,
-                    payment_days: resp.results[i].payment_days,
-                    payment_date: resp.results[i].payment_date,
-                    billing_date: resp.results[i].billing_date,
-                    payment_window: resp.results[i].payment_window,
-                    natural_key: resp.results[i].natural_key,
-                    reference_code: resp.results[i].reference_code,
-                    billing_window: resp.results[i].billing_window,
-                    payment_due_type: resp.results[i].payment_due_type
-                }
-                updateOrCreate(models.payment_matrices, { id_cen: data.id_cen }, data);
-            }
-        });
-
-        // GET DTEs DATA
-        this.getDte({ debtor: 339, limit: 10000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id_cen: resp.results[i].id,
-                    instruction: resp.results[i].instruction,
-                    type: resp.results[i].type,
-                    folio: resp.results[i].folio,
-                    gross_amount: resp.results[i].gross_amount,
-                    net_amount: resp.results[i].net_amount,
-                    reported_by_creditor: resp.results[i].reported_by_creditor,
-                    emission_dt: resp.results[i].emission_dt,
-                    emission_file: resp.results[i].emission_file,
-                    emission_erp_a: resp.results[i].emission_erp_a,
-                    emission_erp_b: resp.results[i].emission_erp_b,
-                    reception_dt: resp.results[i].reception_dt,
-                    reception_erp: resp.results[i].reception_erp,
-                    acceptance_dt: resp.results[i].acceptance_dt,
-                    acceptance_erp: resp.results[i].acceptance_erp,
-                    acceptance_status: resp.results[i].acceptance_status,
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.dte, { id_cen: data.id_cen }, data);
-            }
-        });
-
-        // GET DTEs DATA
-        this.getDte({ creditor: 339, limit: 10000, offset: 0 }, function (resp) {
-            // IF NO RESULTS -> EXIT
-            if (resp.results.length === 0) return
-            // UPDATE OR CREATE RECORDS
-            for (var i = 0; i < resp.results.length; i++) {
-                var data = {
-                    id_cen: resp.results[i].id,
-                    instruction: resp.results[i].instruction,
-                    type: resp.results[i].type,
-                    folio: resp.results[i].folio,
-                    gross_amount: resp.results[i].gross_amount,
-                    net_amount: resp.results[i].net_amount,
-                    reported_by_creditor: resp.results[i].reported_by_creditor,
-                    emission_dt: resp.results[i].emission_dt,
-                    emission_file: resp.results[i].emission_file,
-                    emission_erp_a: resp.results[i].emission_erp_a,
-                    emission_erp_b: resp.results[i].emission_erp_b,
-                    reception_dt: resp.results[i].reception_dt,
-                    reception_erp: resp.results[i].reception_erp,
-                    acceptance_dt: resp.results[i].acceptance_dt,
-                    acceptance_erp: resp.results[i].acceptance_erp,
-                    acceptance_status: resp.results[i].acceptance_status,
-                    created_ts: resp.results[i].created_ts,
-                    updated_ts: resp.results[i].updated_ts
-                }
-                updateOrCreate(models.dte, { id_cen: data.id_cen }, data);
-            }
-        });
+        }
 
         setTimeout(function () {
 
             cen.refreshData();
 
         }, (this.config.cenAPI.refreshPeriod));
+
     }
 }
 
-function updateOrCreate(model, where, data) {
+function updateOrCreate(model, where, data, callback) {
     model.findOrCreate({ where: where })
         .spread((record, created) => {
             // IF ALREADY EXISTS, I UPDATE THE DATA
@@ -700,10 +860,205 @@ function updateOrCreate(model, where, data) {
             } else {
                 record.updateAttributes(data);
             }
+            return callback(null, true);
         })
         .catch(function (error) {
             console.log(error);
+            return callback(error, false);
         });
+}
+
+function updateCompany(cen, filter, callback) {
+    cen.getCompany(filter, function (resp) {
+        // IF NO RESULTS -> EXIT
+        if (resp.results.length === 0) return
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.results, function (value, key, callback) {
+            var data = {
+                id: resp.results[key].id,
+                name: resp.results[key].name,
+                rut: resp.results[key].rut,
+                verification_code: resp.results[key].verification_code,
+                business_name: resp.results[key].business_name,
+                commercial_business: resp.results[key].commercial_business,
+                dte_reception_email: resp.results[key].dte_reception_email,
+                bank_account: resp.results[key].bank_account,
+                bank: resp.results[key].bank,
+                commercial_address: resp.results[key].commercial_address,
+                postal_address: resp.results[key].postal_address,
+                manager: resp.results[key].manager,
+                p_c_first_name: resp.results[key].payments_contact ? resp.results[key].payments_contact.first_name : "",
+                p_c_last_name: resp.results[key].payments_contact ? resp.results[key].payments_contact.last_name : "",
+                p_c_address: resp.results[key].payments_contact ? resp.results[key].payments_contact.address : "",
+                p_c_phones: resp.results[key].payments_contact ? resp.results[key].payments_contact.phones.toString() : "",
+                p_c_email: resp.results[key].payments_contact ? resp.results[key].payments_contact.email : "",
+                b_c_first_name: resp.results[key].bills_contact ? resp.results[key].bills_contact.first_name : "",
+                b_c_last_name: resp.results[key].bills_contact ? resp.results[key].bills_contact.last_name : "",
+                b_c_address: resp.results[key].bills_contact ? resp.results[key].bills_contact.address : "",
+                b_c_phones: resp.results[key].bills_contact ? resp.results[key].bills_contact.phones.toString() : "",
+                b_c_email: resp.results[key].bills_contact ? resp.results[key].bills_contact.email : "",
+                created_ts: resp.results[key].created_ts,
+                updated_ts: resp.results[key].updated_ts
+            }
+            updateOrCreate(models.company, { id: data.id }, data, function (err) {
+                if (err) return callback(err);
+                callback();
+            });
+
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
+
+}
+
+function updateInstructions(cen, filter, callback) {
+    // GET Instructions Debtor DATA
+    cen.getInstructions(filter, function (resp) {
+        // IF NO RESULTS -> EXIT
+        if (resp.results.length === 0) return
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.results, function (value, key, callback) {
+            var data = {
+                id_cen: resp.results[key].id,
+                payment_matrix: resp.results[key].payment_matrix,
+                creditor: resp.results[key].creditor,
+                debtor: resp.results[key].debtor,
+                amount: resp.results[key].amount,
+                amount_gross: resp.results[key].amount_gross,
+                closed: resp.results[key].closed === false ? "false" : "true",
+                status: resp.results[key].status,
+                status_billed: resp.results[key].status_billed,
+                status_paid: resp.results[key].status_paid,
+                resolution: resp.results[key].resolution,
+                max_payment_date: resp.results[key].max_payment_date,
+                informed_paid_amount: resp.results[key].informed_paid_amount,
+                is_paid: resp.results[key].is_paid,
+                aux_data_payment_matrix_natural_key: resp.results[key].aux_data_payment_matrix_natural_key,
+                aux_data_payment_matrix_concept: resp.results[key].aux_data_payment_matrix_concept,
+                created_ts: resp.results[key].created_ts,
+                updated_ts: resp.results[key].updated_ts
+            }
+            updateOrCreate(models.instructions, { id_cen: data.id_cen }, data, function (err) {
+                if (err) return callback(err);
+                callback();
+            });
+
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
+
+}
+
+function updatePaymentMatrices(cen, filter, callback) {
+    // GET PaymentMatrices DATA
+    cen.getPaymentMatrices(filter, function (resp) {
+        // IF NO RESULTS -> EXIT
+        if (resp.results.length === 0) return
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.results, function (value, key, callback) {
+            var data = {
+                id_cen: resp.results[key].id,
+                auxiliary_data: resp.results[key].auxiliary_data.toString(),
+                created_ts: resp.results[key].created_ts,
+                updated_ts: resp.results[key].updated_ts,
+                payment_type: resp.results[key].payment_type,
+                version: resp.results[key].version,
+                payment_file: resp.results[key].payment_file,
+                letter_code: resp.results[key].letter_code,
+                letter_year: resp.results[key].letter_year,
+                letter_file: resp.results[key].letter_file,
+                matrix_file: resp.results[key].matrix_file,
+                publish_date: resp.results[key].publish_date,
+                payment_days: resp.results[key].payment_days,
+                payment_date: resp.results[key].payment_date,
+                billing_date: resp.results[key].billing_date,
+                payment_window: resp.results[key].payment_window,
+                natural_key: resp.results[key].natural_key,
+                reference_code: resp.results[key].reference_code,
+                billing_window: resp.results[key].billing_window,
+                payment_due_type: resp.results[key].payment_due_type
+            }
+            updateOrCreate(models.payment_matrices, { id_cen: data.id_cen }, data, function (err) {
+                if (err) return callback(err);
+                callback();
+            });
+
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
+
+}
+
+function updateDte(cen, filter, callback) {
+    // GET DTEs DATA
+    cen.getDte(filter, function (resp) {
+        // IF NO RESULTS -> EXIT
+        if (resp.results.length === 0) return
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.results, function (value, key, callback) {
+            var data = {
+                id_cen: resp.results[key].id,
+                instruction: resp.results[key].instruction,
+                type: resp.results[key].type,
+                folio: resp.results[key].folio,
+                gross_amount: resp.results[key].gross_amount,
+                net_amount: resp.results[key].net_amount,
+                reported_by_creditor: resp.results[key].reported_by_creditor,
+                emission_dt: resp.results[key].emission_dt,
+                emission_file: resp.results[key].emission_file,
+                emission_erp_a: resp.results[key].emission_erp_a,
+                emission_erp_b: resp.results[key].emission_erp_b,
+                reception_dt: resp.results[key].reception_dt,
+                reception_erp: resp.results[key].reception_erp,
+                acceptance_dt: resp.results[key].acceptance_dt,
+                acceptance_erp: resp.results[key].acceptance_erp,
+                acceptance_status: resp.results[key].acceptance_status,
+                created_ts: resp.results[key].created_ts,
+                updated_ts: resp.results[key].updated_ts
+            }
+            updateOrCreate(models.dte, { id_cen: data.id_cen }, data, function (err) {
+                if (err) return callback(err);
+                callback();
+            });
+
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
+}
+
+function updateBillingWindows(cen, filter, callback) {
+    // GET BillingWindows DATA
+    cen.getBillingWindows(filter, function (resp) {
+        // IF NO RESULTS -> EXIT
+        if (resp.results.length === 0) return
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.results, function (value, key, callback) {
+            var data = {
+                id: resp.results[key].id,
+                natural_key: resp.results[key].natural_key,
+                billing_type: resp.results[key].billing_type,
+                periods: resp.results[key].periods.toString(),
+                created_ts: resp.results[key].created_ts,
+                updated_ts: resp.results[key].updated_ts
+            }
+            updateOrCreate(models.billing_windows, { id: data.id }, data, function (err) {
+                if (err) return callback(err);
+                callback();
+            });
+
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
 }
 
 module.exports = CEN;

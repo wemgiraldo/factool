@@ -96,7 +96,6 @@ module.exports = function (sequelize, DataTypes) {
     // associations can be defined here
     instructions.belongsTo(models.company, { foreignKey: "creditor", as: "creditor_info" });
     instructions.belongsTo(models.company, { foreignKey: "debtor", as: "debtor_info" });
-    
   };
 
   return instructions;

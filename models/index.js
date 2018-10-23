@@ -32,24 +32,7 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-//SyncDB(true);
-
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 module.exports = db;
-
-function SyncDB(force) {
-
-  sequelize
-    .query('SET FOREIGN_KEY_CHECKS = 0', { raw: true })
-    .then(function () {
-      return sequelize.sync({ force: force })
-    })
-    .then(function () {
-      return sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { raw: true })
-    })
-    .then(function () {
-      return console.log("Database Synchronized")
-    })
-}
