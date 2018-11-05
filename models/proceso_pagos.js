@@ -5,13 +5,22 @@ module.exports = function (sequelize, DataTypes) {
       id: {
         type: DataTypes.BIGINT,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true
       },
       bank_account: {
         type: DataTypes.TEXT,
         allowNull: true
       },
       notes: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
+      status: {
+        type: DataTypes.INTEGER(11),
+        allowNull: true
+      },
+      dtes: {
         type: DataTypes.TEXT,
         allowNull: true
       },

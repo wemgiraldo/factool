@@ -6,8 +6,22 @@ const op = Sequelize.Op;
 const operatorsAliases = {
     $eq: op.eq,
     $or: op.or,
-    $between: op.between
+    $between: op.between,
+    $gte: op.gte
+
+    /*
+    [Op.and]: {a: 5}           // AND (a = 5)
+    [Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
+    [Op.gt]: 6,                // > 6
+    [Op.gte]: 6,               // >= 6
+    [Op.lt]: 10,               // < 10
+    [Op.lte]: 10,              // <= 10
+    [Op.ne]: 20,               // != 20
+    [Op.eq]: 3,                // = 3
+    */
 }
+
+var log = { creation: [], acceptance: [], rejection: [] };
 
 
 /* 
@@ -17,10 +31,9 @@ const operatorsAliases = {
 */
 
 /* LIST OF INSTRUCTIONS CREDITOR OR DEBTOR */
-exports.instructionsList = [
+exports.listInstructionsD = [
     function (req, res, next) {
         req.id = parseInt(req.query.id);
-        req.type = req.query.type;
 
         if (req.query.month === undefined && req.query.year === undefined) {
             var date = new Date();
@@ -35,7 +48,7 @@ exports.instructionsList = [
         req.dateTo = new Date(req.year, req.month, 0);
 
         req.filter = {};
-        req.filter[req.type] = req.id;
+        req.filter['debtor'] = req.id;
         req.filter['created_ts'] = {
             $between: [req.dateFrom, req.dateTo]
         }
@@ -101,15 +114,13 @@ exports.instructionsList = [
         req.months[12] = "November";
         req.months[13] = "December";
 
-        return res.render("instructions/list", { type: req.type, months: req.months });
+        return res.render("instructions/list_instructionsD", { type: req.type, months: req.months });
 
     }]
 
-/* LIST OF NOMINA DE PAGOS */
-exports.nominaPagos = [
+exports.listInstructionsC = [
     function (req, res, next) {
         req.id = parseInt(req.query.id);
-        req.type = req.query.type;
 
         if (req.query.month === undefined && req.query.year === undefined) {
             var date = new Date();
@@ -124,7 +135,7 @@ exports.nominaPagos = [
         req.dateTo = new Date(req.year, req.month, 0);
 
         req.filter = {};
-        req.filter[req.type] = req.id;
+        req.filter['creditor'] = req.id;
         req.filter['created_ts'] = {
             $between: [req.dateFrom, req.dateTo]
         }
@@ -143,7 +154,6 @@ exports.nominaPagos = [
             var ingr = req.instructions[i];
             var dte = getDteById(req.dtes, ingr.id_cen);
             var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
-            //if (parseInt(ingr.status_paid) === 1) {
             data.data.push([
                 "",
                 ingr.id_cen,
@@ -166,10 +176,11 @@ exports.nominaPagos = [
                 //ingr.updated_ts,
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
+                (dte !== undefined) ? dte.emission_file : "",
                 (dte !== undefined) ? dte.acceptance_dt : "",
                 (dte !== undefined) ? getDteAcceptStById(req.dte_acceptance_status, parseInt(dte.acceptance_status)) : ""
+
             ]);
-            //}
         }
 
         if (req.xhr) {
@@ -190,7 +201,7 @@ exports.nominaPagos = [
         req.months[12] = "November";
         req.months[13] = "December";
 
-        return res.render("instructions/nominapagos", { type: req.type, months: req.months });
+        return res.render("instructions/list_instructionsC", { type: req.type, months: req.months });
 
     }]
 
@@ -199,8 +210,11 @@ exports.createInvoice = [
     function (req, res, next) {
 
         if (req.body.list === "") {
-            next();
+            return res.send("No invoices selected!");
         }
+        logger.log("START CREATION INVOICES: " + req.body.list);
+        log["creation"].push("START CREATION INVOICES: " + req.body.list);
+
         var lists = req.body.list.split(",");
 
         asyncLoop(lists.length, function (loop) {
@@ -213,109 +227,28 @@ exports.createInvoice = [
                     facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix, function (err, result) {
                         if (err) return loop.error(err);
                         logger.log("Invoice n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
+                        log["creation"].push("Invoice n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
                         return loop.next();
                     });
                 });
             });
         },
             function (err) {
-                if (err) logger.log(err);
+                if (err) {
+                    logger.log(err);
+                    return res.send({ res: "ERR", msg: err });
+                }
                 next();
             });
     },
     function (req, res) {
-        cen.refreshData("InstructionsC");
-        cen.refreshData("DteC");
-        return res.send("Invoices created!");
-    }
-]
-
-/* CREATE NOMINA PAGO */
-exports.createNominaPago = [
-    getDteList,
-    function (req, res, next) {
-
-        req.toXls = [];
-
-        if (req.body.list === "") {
-            next();
-        }
-        var lists = req.body.list.split(",");
-
-        async.forEachOf(lists, function (value, key, callback) {
-            models.instructions.findAll({ where: { id_cen: lists[key] }, limit: 1, include: [{ model: models.company, as: "creditor_info", include: [{ model: models.banks, as: "bank_info" }] }] }).then(instr => {
-                var dte = getDteById(req.dtes, instr[0].id_cen);
-                if (!dte) return callback();
-
-                req.toXls.push([
-                    2,
-                    instr[0].rut + instr[0].verification_code,
-                    instr[0].creditor_info.business_name,
-                    instr[0].creditor_info.bank_account,
-                    instr[0].amount_gross,
-                    instr[0].creditor_info.bank_info.type,
-                    instr[0].creditor_info.bank_info.sbif
-                ]);
-
-                req.toXls.push([
-                    3,
-                    dte.folio,
-                    1,
-                    moment().format("YYYYMMDD"),
-                    instr[0].amount_gross,
-                    "",
-                    ""
-                ]);
-
-                return callback();
+        cen.refreshData("DteC", function () {
+            cen.refreshData("InstructionsC", function () {
+                req.flash("success", "Invoices created!");
+                // return res.redirect("/instructions/creditor/?id=" + app.locals.idCompany);
+                return res.send({ res: "OK" });
             });
-        }, function (err) {
-            if (err) logger.log(err);
-            next();
         });
-    },
-    function (req, res, next) {
-        var xls = json2xls(req.toXls);
-        fs.writeFileSync('./public/nomina_pagos/nominaPagos_' + moment().format("yyyyMMddHHmmss") + '.xls', xls, 'binary');
-        next();
-    },
-    function (req, res) {
-        return res.send("Nomina de pagos created!");
-    }
-]
-
-/* CREATE PAYMENT */
-exports.createPayment = [
-    function (req, res, next) {
-
-        if (req.body.list === "") {
-            next();
-        }
-        var lists = req.body.list.split(",");
-
-        asyncLoop(lists.length, function (loop) {
-            id = lists[loop.iteration()];
-
-            models.instructions.findAll({ where: { id_cen: id }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
-                req.instruction = instr[0];
-                models.payment_matrices.findAll({ where: { id_cen: req.instruction.payment_matrix }, limit: 1, include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
-                    req.payment_matrix = payment_matrix[0];
-                    facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix, function (err, result) {
-                        if (err) return loop.error(err);
-                        logger.log("Payment n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
-                        return loop.next();
-                    });
-                });
-            })
-        }, function (err) {
-            if (err) logger.log(err);
-            next();
-        }
-        );
-    },
-    function (req, res) {
-        cen.refreshData("InstructionsD");
-        return res.send("Invoices created!");
     }
 ]
 
@@ -324,7 +257,7 @@ exports.acceptInvoice = [
     function (req, res, next) {
 
         if (req.body.list === "") {
-            next();
+            return res.send("No invoices selected!");
         }
         var lists = req.body.list.split(",");
 
@@ -341,7 +274,10 @@ exports.acceptInvoice = [
                 });
             });
         }, function (err) {
-            if (err) logger.log(err);
+            if (err) {
+                logger.log(err);
+                return res.send(err);
+            }
             next();
         });
     },
@@ -357,7 +293,7 @@ exports.rejectInvoice = [
     function (req, res, next) {
 
         if (req.body.list === "") {
-            next();
+            return res.send("No invoices selected!");
         }
         var lists = req.body.list.split(",");
 
@@ -374,7 +310,10 @@ exports.rejectInvoice = [
                 });
             })
         }, function (err) {
-            if (err) logger.log(err);
+            if (err) {
+                logger.log(err);
+                return res.send(err);
+            }
             next();
         });
     },
@@ -384,6 +323,19 @@ exports.rejectInvoice = [
         return res.send("Invoices rejected!");
     }
 ]
+
+/* UPDATE LOG */
+exports.updateLog = function (req, res) {
+
+    if (req.body.log && log[req.body.log]) {
+        var msg = log[req.body.log].splice(0,1);
+        return res.send(msg);
+    }
+
+    res.status(404).send('Log Not found');
+}
+
+
 
 function getDteById(dtes, id) {
 
@@ -441,10 +393,18 @@ function getPaymentStById(paymentSt, id) {
 
 function getInstructionsList(req, res, next) {
 
-    models.instructions.findAll({ where: req.filter, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instructions => {
-        req.instructions = instructions;
-        return next();
-    })
+    if (req.filterInstrPay) {
+        models.instructions.findAll({ where: req.filterInstrPay, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instructions => {
+            req.instructions = instructions;
+            return next();
+        })
+    } else {
+        models.instructions.findAll({ where: req.filter, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instructions => {
+            req.instructions = instructions;
+            return next();
+        })
+    }
+
 
 }
 
@@ -461,7 +421,7 @@ function getDteList(req, res, next) {
     models.dte.findAll().then(dtes => {
         req.dtes = dtes;
         return next();
-    })
+    });
 
 }
 

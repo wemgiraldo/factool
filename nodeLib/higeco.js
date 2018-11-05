@@ -1,0 +1,133 @@
+var request = require('request');
+
+const fs = require('fs');
+
+class HigecoPortalDriver {
+
+    constructor(config) {
+
+        this.config = config;
+        this.endpoint = this.config.higecoAPI.endpoint;
+        this.username = this.config.higecoAPI.username;
+        this.password = this.config.higecoAPI.password;
+        this.authtoken = "";
+
+        // GET AUTH TOKEN
+        this.getToken(this.username, this.password, function (err, token) {
+            higecoDriver.authtoken = token;
+
+            // REFRESH DATA EACH 15mins
+            higecoDriver.refreshData();
+        });
+
+    }
+
+
+    getToken(username, password, callback) {
+
+        request.post({
+            headers: { 'content-type': 'application/json' },
+            url: this.endpoint + '/api/v1/authenticate/',
+            json: {
+                "username": username,
+                "password": password
+            }
+        }, function (error, response, body) {
+            if (error) {
+                console.log('error:', error); // Print the error if one occurred
+                callback(error, false);
+            }
+            return callback(null, body.token);
+        });
+    }
+
+    getMeasurements(data, callback) {
+
+        request.get({
+            headers: {
+                'authorization': this.authtoken
+            },
+            url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.getTime() / 1000 + "&to=" + data.to.getTime() / 1000
+        }, function (err, res, body) {
+            if (err) return callback(err, false)
+            var result = JSON.parse(body);
+            var path = res.request.path.split("/");
+            result['plant_id'] = path[4];
+            result['device_id'] = path[5];
+            return callback(null, result);
+        });
+
+    }
+
+    refreshData(callback) {
+
+        var me = this;
+
+        logger.log("START GET MEASUREMENTS");
+
+        models.plants.findAll().then(plants => {
+
+            async.forEachOf(plants, function (value, key, callback) {
+                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 1), to: new Date(2018, 10, 5) }, function () {
+                    callback();
+                });
+            }, function (err) {
+                if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
+                return logger.log("GET MEASUREMENTS - OK");
+            });
+
+        });
+
+        setTimeout(function () {
+
+            higecoDriver.refreshData();
+
+        }, (this.config.higecoAPI.refreshPeriod));
+
+    }
+}
+
+function updateMeasurements(higecoDriver, filter, callback) {
+
+    higecoDriver.getMeasurements(filter, function (err, resp) {
+        // IF NO RESULTS -> EXIT
+        if (!resp.data) return;
+        if (resp.data.length === 0) return;
+        
+        var plant_id = resp.plant_id;
+        var device_id = resp.device_id;
+
+        // UPDATE OR CREATE RECORDS
+        async.forEachOf(resp.items, function (value, key, callback) {
+            var item = value;
+            async.forEachOf(resp.data, function (value, key, callback) {
+
+                var data = {
+                    item_id: item.id,
+                    plant_id: plant_id,
+                    timestamp: moment.unix(value[0]).utc(),
+                    value: value[1]
+                }
+
+                models.measurements.findOrCreate({ where: { timestamp: data.timestamp, item_id: data.item_id } })
+                    .spread((record, created) => {
+                        record.updateAttributes(data);
+                        callback();
+                    })
+                    .catch(function (error) {
+                        callback(error);
+                    });
+
+            }, function (err) {
+                if (err) return callback(err)
+                return callback();
+            });
+        }, function (err) {
+            if (err) return callback(err)
+            return callback();
+        });
+    });
+
+}
+
+module.exports = HigecoPortalDriver;

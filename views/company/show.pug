@@ -1,0 +1,35 @@
+extends one.pug
+
+include ../mixin/conditionalBadge.pug
+
+block append scripts
+
+block content
+  .row
+    .col-sm-8
+      .d-flex.flex-wrap.mt-5.ml-2
+
+          .card.mx-3.flex-grow-1
+            .card-header.card-heading-dark.mb-3 GENERAL INFO
+            table.table
+                  tr
+                    th Name
+                    td=company.name
+                  tr
+                    th RUT
+                    td=company.rut + company.verification_code
+                  tr
+                    th Business Name
+                    td=company.business_name
+                  tr
+                    th Commercial Business
+                    td=company.commercial_business
+                  tr
+                    th Bank Account
+                    td=company.bank_account
+                  tr
+                    th Bank
+                    td=company.bank
+                  tr
+                    th Commercial Address
+                    td=company.commercial_address

@@ -486,3 +486,37 @@ form button[type="submit"]{
 #log-container-partial table thead .sorting_asc:before, #log-container-partial table thead .sorting_asc:after {
   bottom:0.2rem;
 }
+
+/*
+* PROCESS LOG
+*/
+
+#process-log-container {
+  background-color:rgba(73, 80, 87, 0.4);
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  z-index: 1000;
+}
+
+#log{
+  width: 80%;
+  margin: 10%;
+  background-color: #f8f9fa;
+  color: #121d20;
+  padding: 5%;
+
+}
+
+#log h3 {
+  text-align: center;
+  color: #121d20;
+  margin-top: 0;
+  text-transform: uppercase;
+  margin-bottom: 1.4em;
+}
+
+#log p {
+  margin: 0 0 0.5em 0;
+}

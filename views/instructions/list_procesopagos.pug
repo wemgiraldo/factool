@@ -1,0 +1,26 @@
+extends ../layout
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) BACK
+        
+block append scripts
+  script(src="/javascripts/list_procesopago.js")
+
+block content
+
+    a(class="btn btn-backend m-3" id="createProcesoPago" ) Create Payment Process
+
+    .col-sm#listprocesoPago-container
+        table.table.table-hover.mt-5(data-title='NOMINA DE PAGOS')
+            thead
+                tr
+                    th.id ID
+                    th.bank_account Bank Account
+                    th.notes Notes
+                    th.created_at Opening Date
+                    th.closed_at Closing Date
+        

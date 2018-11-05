@@ -1,0 +1,53 @@
+extends one.pug
+
+block append scripts
+  script(src="/javascripts/list_nominapago.js")
+
+  
+  
+block content
+
+  a(class="btn btn-backend m-3" id="createNominaPago" ) Create Payment
+  if proceso.closed_at === null
+    a(class="btn btn-backend m-3" id="closeNominaPago" ) Close Payment
+
+
+  .row
+    .col-sm#listprocesoPago-container(data-idCompany=idCompany)
+      .d-flex.flex-wrap
+          .card.mx-3.flex-grow-1
+            .card-header.card-heading-dark.mb-3 GENERAL INFO
+            table.table
+                  tr
+                    th ID
+                    td(id='id_proceso')=proceso.id
+                  tr
+                    th Bank Account
+                    td=proceso.bank_account
+                  tr
+                    th Notes
+                    td=proceso.notes
+                  tr
+                    th Opening Date
+                    td=(proceso.created_at === null ) ? "" : moment(proceso.created_at).format("YYYY-MM-DD")
+                  tr
+                    th Closing Date
+                    td=(proceso.closed_at === null ) ? "" : moment(proceso.closed_at).format("YYYY-MM-DD")
+
+  .row
+    .col-sm#listnominaPago-container(data-idCompany=idCompany)
+        table.table.table-hover.mt-5(data-title='NOMINA DE PAGOS')
+            thead
+              tr
+                each label, key in cols
+                    if (key === "0" )
+                      th
+                        input(type="checkbox" name="select_all" value="1" id="table-select-all")          
+                    else
+                      th(class="proceso"+label)=label
+            tbody
+              each d in data
+                  tr(data-id=d.id)
+                      each label,key in cols
+                        td=d[key]
+                            

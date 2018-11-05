@@ -1,0 +1,30 @@
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header 
+        i.fa.fa-envelope.mr-3
+        | SALES
+        | Pending Invoices
+    .card-body
+        p.card-text=(statistics && statistics.salesPI!==null)?statistics.salesPI:"NA"
+
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header
+        i.fa.fa-credit-card.mr-3
+        | SALES
+        | Pending Payments
+    .card-body
+        p.card-text=(statistics && statistics.salesPP!==null)?statistics.salesPP:"NA"
+            
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header
+        i.fa.fa-envelope.mr-3
+        | PURCHASES
+        | Pending Invoices
+    .card-body
+        p.card-text=(statistics && statistics.purchasesPI!==null)?statistics.purchasesPI:"NA"
+.col-xl-3.col-sm-6.mb-3.mt-3
+    .card-header
+        i.fa.fa-credit-card.mr-3
+        | PURCHASES
+        | Pending Payments
+    .card-body
+        p.card-text=(statistics && statistics.purchasesPP!==null)?statistics.purchasesPP:"NA"

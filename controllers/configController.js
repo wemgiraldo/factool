@@ -1,6 +1,8 @@
 const { body, validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 
+var bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 /* 
 *
@@ -17,17 +19,17 @@ exports.listUser = [
 
 /* DELETE USER */
 exports.deleteUser = [
-    findUser,
     function (req, res) {
-        factoolDb.deleteUser(req.profile, function(err){
-            if (err){
-                req.flash("error","Error deleting user");
-            }else{
-                req.flash("success","User deleted succesfully!");
-            }
+        models.user.findOne({ where: { id: req.params.userId } }).then(user => {
+            return user.destroy();
+        }).then(() => {
+            req.flash("success", "User deleted succesfully!");
             return res.redirect("/config/user");
-        })
-        
+        }).catch(function (error) {
+            req.flash("error", "Error deleting user");
+            return res.redirect("/config/user");
+        });
+
     }];
 
 /* EDiT OR CREATE USER */
@@ -45,28 +47,27 @@ exports.editUser_get = [
     findUser,
 
     function (req, res) {
-        return res.render("config/editUser", { title: "Edit User "+req.profile.username, user: req.profile })
+        return res.render("config/editUser", { title: "Edit User " + req.profile.username, user: req.profile })
     }];
- 
+
 exports.newUser_post = [
-    
+
     // Validate fields
     body('name', 'Name is required').isLength({ min: 1 }).trim(),
     body('email').isLength({ min: 1 }).withMessage('Email is required').isEmail().withMessage("Must be a valid email")
         .custom((value, { req }) => {
-            return new Promise(function(resolve, reject) {
-                factoolDb.findOneUser({email: value},function(err,user){
-                    if (!err && user) {
-                        return reject('E-mail already in use');
-                    }
+            return new Promise(function (resolve, reject) {
+                models.user.findOne({ where: { email: value } }).then(user => {
+                    if (user) return reject('E-mail already in use');
                     return resolve(true);
                 });
-            })}).trim(),
-    body('password').isLength({ min:8 }).withMessage('Password must be at least 8 characters in length.')
+            })
+        }).trim(),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters in length.')
         .matches('[0-9]').withMessage('Password must contain at least 1 number.')
         .matches('[a-z]').withMessage('Password must contain at least 1 lowercase letter.')
         .matches('[A-Z]').withMessage('Password must contain at least 1 uppercase letter.'),
-    body('password2','Passwords do not match').custom((value, {req, loc, path}) => {
+    body('password2', 'Passwords do not match').custom((value, { req, loc, path }) => {
         if (value !== req.body.password) {
             return false;
         } else {
@@ -76,20 +77,22 @@ exports.newUser_post = [
     // Sanitize (trim and escape) the name field.
     sanitizeBody('*').trim().escape(),
     // PROCESS USER
-    (req,res,next)=>{
+    (req, res, next) => {
         delete req.body.password2;
-        req.body.username=req.body.email;
-        req.body.enabled=Boolean(req.body.enabled);
-        factoolDb.hashPassword(req.body.password,function(err,hash){
+        req.body.username = req.body.email;
+        req.body.enabled = Boolean(req.body.enabled);
 
-            if (err){
-                logger.log(err,"err");
+        bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
+
+            if (err) {
+                logger.log(err, "err");
                 return res.status(500).send('Error hashing password');
             }
 
-            req.body.password=hash;
+            req.body.password = hash;
             return next();
-        });
+        })
+
     },
     // Process request after validation and sanitization.
     (req, res, next) => {
@@ -97,7 +100,7 @@ exports.newUser_post = [
         // Extract the validation errors from a request.
         const errors = validationResult(req);
 
-        var user=req.body;
+        var user = req.body;
 
         title = "Create New User";
 
@@ -112,15 +115,12 @@ exports.newUser_post = [
         else {
             // Data from form is valid.
             //SAVE USER
-            factoolDb.saveUser(user, function (err, rows, fields) {
-
-                if (err) {
-                    throw err;
-                }
-
+            models.user.create(user).then(user => {
                 logger.log("Created a new User from web.");
-                req.flash("success","User created succesfully!");
+                req.flash("success", "User created succesfully!");
                 res.redirect("/config/user/edit/" + rows.insertId);
+            }).catch(function (error) {
+                throw err;
             });
 
         }
@@ -134,22 +134,21 @@ exports.editUser_post = [
     body('name', 'Name is required').isLength({ min: 1 }).trim(),
     body('email').isLength({ min: 1 }).withMessage('Email is required').isEmail().withMessage("Must be a valid email")
         .custom((value, { req }) => {
-            return new Promise(function(resolve, reject) {
-                if (req.profile.email===value){
+            return new Promise(function (resolve, reject) {
+                if (req.profile.email === value) {
                     return resolve(true);
                 }
-                factoolDb.findOneUser({email: value},function(err,user){
-                    if (!err && user) {
-                        return reject('E-mail already in use');
-                    }
+                models.user.findOne({ where: { email: value } }).then(user => {
+                    if (user) return reject('E-mail already in use');
                     return resolve(true);
                 });
-            })}).trim(),
-    body('password').optional({ checkFalsy: true }).isLength({ min:8 }).withMessage('Password must be at least 8 characters in length.')
+            })
+        }).trim(),
+    body('password').optional({ checkFalsy: true }).isLength({ min: 8 }).withMessage('Password must be at least 8 characters in length.')
         .matches('[0-9]').optional({ checkFalsy: true }).withMessage('Password must contain at least 1 number.')
         .matches('[a-z]').optional({ checkFalsy: true }).withMessage('Password must contain at least 1 lowercase letter.')
         .matches('[A-Z]').optional({ checkFalsy: true }).withMessage('Password must contain at least 1 uppercase letter.'),
-    body('password2','Passwords do not match').optional({ checkFalsy: true }).custom((value, {req, loc, path}) => {
+    body('password2', 'Passwords do not match').optional({ checkFalsy: true }).custom((value, { req, loc, path }) => {
         if (value !== req.body.password) {
             return false;
         } else {
@@ -159,23 +158,23 @@ exports.editUser_post = [
     // Sanitize (trim and escape) the name field.
     sanitizeBody('*').trim().escape(),
     // PROCESS USER
-    (req,res,next)=>{
+    (req, res, next) => {
 
         delete req.body.password2;
-        req.body.username=req.body.email;
-        req.body.enabled=Boolean(req.body.enabled);
-        if (req.body.password && req.body.password.length>0){
-            factoolDb.hashPassword(req.body.password,function(err,hash){
+        req.body.username = req.body.email;
+        req.body.enabled = Boolean(req.body.enabled);
+        if (req.body.password && req.body.password.length > 0) {
+            bcrypt.hash(req.body.password, saltRounds, function (err, hash) {
 
-                if (err){
-                    logger.log(err,"err");
+                if (err) {
+                    logger.log(err, "err");
                     return res.status(500).send('Error hashing password');
                 }
-    
-                req.body.password=hash;
+
+                req.body.password = hash;
                 return next();
-            });
-        }else{
+            })
+        } else {
             delete req.body.password;
             return next();
         }
@@ -188,9 +187,9 @@ exports.editUser_post = [
         const errors = validationResult(req);
 
         // Create or update a genre object with escaped and trimmed data.
-        var user=req.profile;
+        var user = req.profile;
         title = "Edit " + user.name;
-        
+
         user = Object.assign(user, req.body);
 
         if (!errors.isEmpty()) {
@@ -204,18 +203,17 @@ exports.editUser_post = [
         else {
             // Data from form is valid.
             //SAVE USER
-            factoolDb.saveUser(user, function (err, rows, fields) {
 
-                if (err) {
+            models.user.findOrCreate({ where: { email: user.email } })
+                .spread((record, created) => {
+                    record.updateAttributes(user);
+                    logger.log("Created a new User from web.");
+                    req.flash("success", "User updated succesfully!");
+                    res.redirect("/config/user/edit/" + user.id);
+                })
+                .catch(function (error) {
                     throw err;
-                }
-
-                logger.log("Created a new User from web.");
-                req.flash("success","User updated succesfully!");
-
-                res.redirect("/config/user/edit/" + user.id);
-            });
-
+                });
         }
     }
 ];
@@ -224,7 +222,7 @@ exports.editUser_post = [
 
 exports.settings_get = function (req, res, next) {
 
-    res.render("config/settings",{config: config});
+    res.render("config/settings", { config: config });
 
 };
 
@@ -242,13 +240,13 @@ exports.settings_post = [
         // Extract the validation errors from a request.
         const errors = validationResult(req);
 
-        for(formField in req.body){
+        for (formField in req.body) {
 
-            var tmp=formField.split("|");
-            var section=tmp[0];
-            var field=tmp[1];
+            var tmp = formField.split("|");
+            var section = tmp[0];
+            var field = tmp[1];
 
-            config[section][field]=req.body[formField];
+            config[section][field] = req.body[formField];
 
         }
 
@@ -258,32 +256,32 @@ exports.settings_post = [
             for (var i = 0; i < errors.array().length; i++) {
                 err[errors.array()[0].param] = errors.array()[0].msg;
             }
-            return res.render("config/settings",{config: config,  errors: err });
+            return res.render("config/settings", { config: config, errors: err });
         }
         else {
             // Data from form is valid.
             //MAKE A COPY OF THE OLD CONFIG FILE
-            fs.copy(configPath,configPath+".old",{overwrite: true},err => {
+            fs.copy(configPath, configPath + ".old", { overwrite: true }, err => {
 
-                if (err){
-                    logger.log(err.message,"err");
-                    req.flash("error","Error updating configuration!");
-                }else{
+                if (err) {
+                    logger.log(err.message, "err");
+                    req.flash("error", "Error updating configuration!");
+                } else {
                     //SAVE CONFIG FILE
-                    fs.writeFile(configPath, JSON.stringify(config), function(err) {
-                        if(err) {
-                            req.flash("error","Error updating configuration!");
-                            logger.log(err,"err");
-                        }else{
-                            logger.log("Config.json modified from web by "+req.user.name);
-                            req.flash("success","Configuration updated succesfully. Reloading servers..");
+                    fs.writeFile(configPath, JSON.stringify(config), function (err) {
+                        if (err) {
+                            req.flash("error", "Error updating configuration!");
+                            logger.log(err, "err");
+                        } else {
+                            logger.log("Config.json modified from web by " + req.user.name);
+                            req.flash("success", "Configuration updated succesfully. Reloading servers..");
                         }
-                    }); 
+                    });
                 }
 
                 res.redirect("/config/settings");
-              
-              });
+
+            });
 
 
         }
@@ -298,20 +296,16 @@ function findUser(req, res, next) {
         options = { where: { id: req.params.userId } };
     }
 
-    factoolDb.findUser(options, function (err, rows, fields) {
+    models.user.findAll(options).then(users => {
 
-        if (err) {
-            return next(err);
-        }
-
-        if (rows.length === 0) {
+        if (users.length === 0) {
             return res.status(404).send('Not found');
         }
 
         if (req.params.userId) {
-            req.profile = rows[0];
+            req.profile = users[0];
         } else {
-            req.profiles = rows;
+            req.profiles = users;
         }
 
         return next();

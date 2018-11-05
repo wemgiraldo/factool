@@ -1,17 +1,19 @@
-extends menu.pug
+extends ../layout
+
+block sub-header
 
 block append scripts
-  script(src="/javascripts/list.js")
+  script(src="/javascripts/list_company.js")
 
 block content
 
     .col-sm#listcompany-container
-        table.table.table-hover.mt-5(data-title='PARTECIPANTES')
+        table.table.table-hover.mt-5(data-title='COMPANIES')
             thead
                 tr
                     th.id ID
                     th Name
-                    th.rut RUT
+                    th.rut RUT Company
                     th.verification_code Verification_Code
                     th Business Name
                     th.comm_business Commercial Business

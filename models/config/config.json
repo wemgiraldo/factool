@@ -8,7 +8,13 @@
     "define": {
       "timestamps": false
     },
-    "logging": false
+    "logging": false,
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 30000,
+      "acquire": 30000
+    }
   },
   "test": {
     "username": "root",
@@ -19,7 +25,13 @@
     "define": {
       "timestamps": false
     },
-    "logging": false
+    "logging": false,
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 30000,
+      "acquire": 30000
+    }
   },
   "production": {
     "username": "root",
@@ -30,6 +42,12 @@
     "define": {
       "timestamps": false
     },
-    "logging": false
+    "logging": false,
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 30000,
+      "acquire": 30000
+    }
   }
 }

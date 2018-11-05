@@ -16,11 +16,15 @@ class CEN {
         this.config = config;
         this.username = this.config.cenAPI.username;
         this.password = this.config.cenAPI.password;
-        this.authtoken;
+        this.authtoken = "";
+        this.idCompany = 0;
+
+        // SET THE DEFAULT COMPANY IDs
+        this.updateIdCompany(this.config.cenAPI.idCompanyDefault);
 
         // GET AUTH TOKEN
         this.getToken(this.username, this.password);
-
+        
         // GET DATA TYPES
         //this.refreshDataTypes();
 
@@ -28,6 +32,10 @@ class CEN {
         //this.refreshData();
     }
 
+    updateIdCompany(value){
+        this.idCompany = parseInt(value);
+    }
+    
     getFileFromUrl(url, path, callback) {
         var fs = require('fs');
         request
@@ -166,22 +174,21 @@ class CEN {
 
     postCreatePayment(data, callback) {
 
-        var create_at = new Date(data.created_at);
-
         var dataString = {
             debtor: data.debtor,
             creditor: data.creditor,
             amount: data.amount,
             payment_dt: data.payment_dt,
             transaction_type: data.transaction_type,
-            actual_collector: data.actual_collector
+            actual_collector: data.actual_collector,
+            instruction_amount_tuples: data.instruction_amount_tuples
         }
 
         request.post({
             headers: {
                 'Authorization': 'Token ' + this.authtoken
             },
-            url: this.endpoint + '/api/v1/operations/dtes/create/',
+            url: this.endpoint + '/api/v1/operations/payments/create/',
             formData: { data: JSON.stringify(dataString) }
         }, function (err, res, body) {
             if (err) return callback(err, false)
@@ -748,12 +755,13 @@ class CEN {
 
     // REFRESH DATA
 
-    refreshData(options) {
+    refreshData(options, callback) {
 
         var me = this;
+        var idCompany = parseInt(me.idCompany);
 
         if (!options) {
-            logger.log("START GET DATA");
+            logger.log("START GET DATA FOR IDCOMPANY: " + idCompany);
 
             async.parallel([
                 function (callback) {
@@ -762,17 +770,12 @@ class CEN {
                     });
                 },
                 function (callback) {
-                    updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
+                    updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function () {
                         callback();
                     });
                 },
                 function (callback) {
-                    updateInstructions(me, { creditor: 339, limit: 5000, offset: 0 }, function () {
-                        callback();
-                    });
-                },
-                function (callback) {
-                    updateInstructions(me, { debtor: 339, limit: 5000, offset: 0 }, function () {
+                    updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function () {
                         callback();
                     });
                 },
@@ -782,12 +785,17 @@ class CEN {
                     });
                 },
                 function (callback) {
-                    updateDte(me, { creditor: 339, limit: 10000, offset: 0 }, function () {
+                    updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
                         callback();
                     });
                 },
                 function (callback) {
-                    updateDte(me, { debtor: 339, limit: 10000, offset: 0 }, function () {
+                    updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function () {
+                        callback();
+                    });
+                },
+                function (callback) {
+                    updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function () {
                         callback();
                     });
                 }
@@ -798,55 +806,60 @@ class CEN {
                     return logger.log("GET DATA - OK");
                 });
 
+            setTimeout(function () {
+
+                cen.refreshData();
+
+            }, (this.config.cenAPI.refreshPeriod));
+
         } else {
-            logger.log("START GET DATA " + options);
+            logger.log("START GET DATA " + options + " FOR IDCOMPANY: " + idCompany);
 
             switch (options) {
                 case "Company":
                     updateCompany(me, { limit: 5000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "BillingWindows":
                     updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "InstructionsC":
-                    updateInstructions(me, { creditor: 339, limit: 5000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                    updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function () {
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "InstructionsD":
-                    updateInstructions(me, { debtor: 339, limit: 5000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                    updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function () {
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "PaymentMatrices":
                     updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "DteC":
-                    updateDte(me, { creditor: 339, limit: 10000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                    updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function () {
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
                 case "DteD":
-                    updateDte(me, { debtor: 339, limit: 10000, offset: 0 }, function () {
-                        return logger.log("GET DATA " + options + " - OK");
+                    updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function () {
+                        logger.log("GET DATA " + options + " - OK");
+                        callback();
                     });
                     break;
             }
-
         }
-
-        setTimeout(function () {
-
-            cen.refreshData();
-
-        }, (this.config.cenAPI.refreshPeriod));
-
     }
 }
 

@@ -1,7 +1,7 @@
 doctype html
 html(lang="es")
   head
-    title Mercatus Dev Tools
+    title FacTool
 
     
       
@@ -31,23 +31,20 @@ html(lang="es")
         div.collapse.navbar-collapse(id="navbarSupportedContent")
           ul(class="navbar-nav mr-auto")
             li(class="nav-item active")
-              a(class="nav-link",href="/") Partecipantes
+              a(class="nav-link",href="/") DASHBOARDS
             li(class="nav-item active")
-              a(class="nav-link",href="/instructions/list/?type=creditor&id=" + idCompany) Control de Ingresos
+              a(class="nav-link",href="/company/list") COMPANIES
             li(class="nav-item active")
-              a(class="nav-link",href="/instructions/list/?type=debtor&id=" + idCompany) Control de Egresos
+              a(class="nav-link",href="/instructions/creditor/?id=" + idCompany) SALES
+            li(class="nav-item active")
+              a(class="nav-link",href="/instructions/debtor/?id=" + idCompany) PURCHASES
            
             
 
 
 
-
+        
           ul(class="navbar-nav ml-auto")
-            li(class="nav-item")
-              select#idCompany
-                option 339
-                option 340
-
             li(class="nav-item")
               if currentUser.roles >= 2
                 a.nav-link(href="/config",data-toggle="tooltip",data-placement="top",title="Settings")

@@ -3,8 +3,12 @@ var router = express.Router();
 var companyController = require("../../controllers/companyController");
 
 
-/* LIST OF INVOICE IN */
+/* LIST COMPANY */
 router.get('/company/list', companyController.companyList);
+
+/* SHOW COMPANY */
+router.get('/company/show/:id', companyController.showCompany);
+
 
 
 module.exports = router;

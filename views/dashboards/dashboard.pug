@@ -1,0 +1,34 @@
+extends ../layout
+
+block append scripts
+  script(src="/javascripts/charts.js")
+  script(type="text/javascript" src="https://code.highcharts.com/highcharts.js")
+  script(type="text/javascript" src="https://code.highcharts.com/highstock.js")
+  script(type="text/javascript" src="https://code.highcharts.com/modules/exporting.js")
+  script(type="text/javascript" src="https://code.highcharts.com/modules/export-data.js")
+  script(type="text/javascript" src="https://code.highcharts.com/modules/histogram-bellcurve.js")
+ 
+
+block sub-header
+ 
+
+block content
+  
+  .row.load-partial(data-url='' data-reload='5000')
+    include _statistics.pug
+  
+  .row
+    .col-sm
+      form.form-inline
+          select#chartType1.form-control
+              option(selected) 1 Week
+              option 1 Month
+              option 3 Months
+              option 1 Year
+              option test
+
+  .row
+    .col-sm-6.mt-3#container
+
+    .col-sm-6.mt-3#container2
+      

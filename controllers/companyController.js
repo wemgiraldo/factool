@@ -52,11 +52,31 @@ exports.companyList = [
     }]
 
 
+/* LIST OF COMPANIES */
+exports.showCompany = [
+    function (req, res, next) {
+        req.filter = {};
+        req.filter['id'] = req.params.id;
+        next();
+    },
+    getCompanyList,
+    function (req, res) {
+        return res.render("company/show", { company: req.company });
+
+    }]
+
 function getCompanyList(req, res, next) {
 
-    models.company.findAll().then(companies => {
-        req.companies = companies;
-        return next();
-    })
+    if (req.filter) {
+        models.company.findAll({ where: req.filter }).then(companies => {
+            req.company = companies[0];
+            return next();
+        });
+    } else {
+        models.company.findAll().then(companies => {
+            req.companies = companies;
+            return next();
+        });
+    }
 
 }

@@ -13,14 +13,16 @@ fs = require("fs.extra");  // Oggetto per la lettura filesystem
 HigJS = require("../nodeLib/hig.js").HigJS;      // Higeco's Base Functions
 CEN_API = require('../nodeLib/cen.js');
 FacturacionCL_API = require('../nodeLib/facturacion-cl.js');
+HigecoPortalDriver = require('../nodeLib/higeco.js');
 models = require('../models');
 async = require("async");
 json2xls = require('json2xls');
-
+XLSX = require('xlsx');
 
 httpServer = null;
 config = null;
 cen = null;
+higecoDriver = null;
 
 configPath = "./config/config.json";
 
@@ -63,8 +65,8 @@ function initServer() {
   var port = config.general.port;
 
   app.set('port', port);
-  app.locals.idCompany = 339;
   app.locals.moment = require('moment');
+  app.locals.idCompany = config.cenAPI.idCompanyDefault;
 
   /**
    * Create HTTP server.
@@ -97,7 +99,7 @@ function initAPI() {
 
   cen = new CEN_API(config);
   facturacion_cl = new FacturacionCL_API(config);
-  
+  higecoDriver = new HigecoPortalDriver(config);
 }
 
 /**

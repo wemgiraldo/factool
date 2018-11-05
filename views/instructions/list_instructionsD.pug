@@ -1,0 +1,62 @@
+extends ../layout
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) PURCHASES
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/listProcesoPago/") PAYMENT PROCESS
+
+block append scripts
+  script(src="/javascripts/list_instructions.js")
+
+block content
+
+    form.form-inline
+
+        select#idCompany.ml-3.mr-3.form-control
+            option 339
+            option 340
+
+        select#year.mr-3.form-control
+            option(selected)=moment().format('YYYY')
+            option=moment().add(1,'years').format('YYYY')
+            option=moment().add(2,'years').format('YYYY')
+            option=moment().add(3,'years').format('YYYY')
+            option=moment().add(-1,'years').format('YYYY')
+            option=moment().add(-2,'years').format('YYYY')
+            option=moment().add(-3,'years').format('YYYY')
+
+        select#month.form-control
+            each month,index in months
+                if index === moment().add('month').format('M')
+                    option(value=index selected)=month
+                else
+                    option(value=index)=month
+
+        a(class="btn btn-backend m-3" id="setAsAccepted" ) Set as Accepted
+        a(class="btn btn-backend m-3" id="setAsRejected" ) Set as Rejected
+
+    .col-sm#listinstructionsD-container
+        table.table.table-hover.mt-5(data-title='LIST OF PURCHASES INVOICE')
+            thead
+                tr
+                    th 
+                        input(type="checkbox" name="select_all" value="1" id="table-select-all")
+                    th.id ID
+                    th.payment_matrix Payment Type
+                    th.creditor Creditor
+                    th.debtor Debtor
+                    th.amount Amount Net
+                    th.amount_gross Amount Gross
+                    //th.status Status
+                    th.status_bill Status Billed
+                    th.status_paid Status Paid
+                    th.folio DTE Number
+                    th.type_dte DTE Type
+                    th.urlDTE URL DTE
+                    th.accept_dt DTE Acceptance Date
+                    th.accept_st DTE Acceptance Status
+                    
