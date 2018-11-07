@@ -1,0 +1,11 @@
+# Project files
+.gitignore
+config/config.json
+config/config.json.old
+
+# Folders
+.git
+node_modules
+log/*
+nbproject
+.vscode

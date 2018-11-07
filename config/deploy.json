@@ -1,0 +1,11 @@
+{
+    "wemPub": {
+        "ssh": {
+            "user": "wem",
+            "password": "W3mW0rld",
+            "host": "31.14.128.186",
+            "port": 22
+        },
+        "path": "/var/www/vhosts/wemworld.eu/factool.wemworld.eu/"
+    }
+}

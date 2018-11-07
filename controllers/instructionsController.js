@@ -33,7 +33,11 @@ var log = { creation: [], acceptance: [], rejection: [] };
 /* LIST OF INSTRUCTIONS CREDITOR OR DEBTOR */
 exports.listInstructionsD = [
     function (req, res, next) {
-        req.id = parseInt(req.query.id);
+        if (!req.query.id) {
+            req.id = parseInt(app.locals.idCompany);
+        } else {
+            req.id = parseInt(req.query.id);
+        }
 
         if (req.query.month === undefined && req.query.year === undefined) {
             var date = new Date();
@@ -59,6 +63,7 @@ exports.listInstructionsD = [
     getPaymentMatricesList,
     getDteList,
     getTypes,
+    getPlants,
     function (req, res) {
 
         var data = { data: [] };
@@ -114,13 +119,17 @@ exports.listInstructionsD = [
         req.months[12] = "November";
         req.months[13] = "December";
 
-        return res.render("instructions/list_instructionsD", { type: req.type, months: req.months });
+        return res.render("instructions/list_instructionsD", { type: req.type, months: req.months, plants: req.plants });
 
     }]
 
 exports.listInstructionsC = [
     function (req, res, next) {
-        req.id = parseInt(req.query.id);
+        if (!req.query.id) {
+            req.id = parseInt(app.locals.idCompany);
+        } else {
+            req.id = parseInt(req.query.id);
+        }
 
         if (req.query.month === undefined && req.query.year === undefined) {
             var date = new Date();
@@ -146,6 +155,7 @@ exports.listInstructionsC = [
     getPaymentMatricesList,
     getDteList,
     getTypes,
+    getPlants,
     function (req, res) {
 
         var data = { data: [] };
@@ -201,7 +211,7 @@ exports.listInstructionsC = [
         req.months[12] = "November";
         req.months[13] = "December";
 
-        return res.render("instructions/list_instructionsC", { type: req.type, months: req.months });
+        return res.render("instructions/list_instructionsC", { type: req.type, months: req.months, plants: req.plants });
 
     }]
 
@@ -245,7 +255,6 @@ exports.createInvoice = [
         cen.refreshData("DteC", function () {
             cen.refreshData("InstructionsC", function () {
                 req.flash("success", "Invoices created!");
-                // return res.redirect("/instructions/creditor/?id=" + app.locals.idCompany);
                 return res.send({ res: "OK" });
             });
         });
@@ -261,6 +270,9 @@ exports.acceptInvoice = [
         }
         var lists = req.body.list.split(",");
 
+        logger.log("START ACCEPT INVOICES: " + req.body.list);
+        log["acceptance"].push("START ACCEPT INVOICES: " + req.body.list);
+
         asyncLoop(lists.length, function (loop) {
             id = lists[loop.iteration()];
 
@@ -270,6 +282,8 @@ exports.acceptInvoice = [
                 cen.postAcceptedDte(req.dte, function (err, result) {
                     if (err) return loop.error(err);
                     logger.log("Invoice n°: " + req.dte.folio + " accepted into CEN!");
+                    log["acceptance"].push("Invoice n°: " + req.dte.folio + " accepted into CEN!");
+
                     return loop.next();
                 });
             });
@@ -282,9 +296,12 @@ exports.acceptInvoice = [
         });
     },
     function (req, res) {
-        cen.refreshData("InstructionsD");
-        cen.refreshData("DteD");
-        return res.send("Invoices accepted!");
+        cen.refreshData("DteD", function () {
+            cen.refreshData("InstructionsD", function () {
+                req.flash("success", "Invoices accepted!");
+                return res.send({ res: "OK" });
+            });
+        });
     }
 ]
 
@@ -297,6 +314,9 @@ exports.rejectInvoice = [
         }
         var lists = req.body.list.split(",");
 
+        logger.log("START REJECT INVOICES: " + req.body.list);
+        log["rejection"].push("START REJECT INVOICES: " + req.body.list);
+
         asyncLoop(lists.length, function (loop) {
             id = lists[loop.iteration()];
 
@@ -306,6 +326,7 @@ exports.rejectInvoice = [
                 cen.postRejectedDte(req.dte, function (err, result) {
                     if (err) return loop.error(err);
                     logger.log("Invoice n°: " + req.dte.folio + " rejected into CEN!");
+                    log["rejection"].push("Invoice n°: " + req.dte.folio + " rejected into CEN!");
                     return loop.next();
                 });
             })
@@ -318,9 +339,12 @@ exports.rejectInvoice = [
         });
     },
     function (req, res) {
-        cen.refreshData("InstructionsD");
-        cen.refreshData("DteD");
-        return res.send("Invoices rejected!");
+        cen.refreshData("DteD", function () {
+            cen.refreshData("InstructionsD", function () {
+                req.flash("success", "Invoices rejected!");
+                return res.send({ res: "OK" });
+            });
+        });
     }
 ]
 
@@ -328,7 +352,7 @@ exports.rejectInvoice = [
 exports.updateLog = function (req, res) {
 
     if (req.body.log && log[req.body.log]) {
-        var msg = log[req.body.log].splice(0,1);
+        var msg = log[req.body.log].splice(0, 1);
         return res.send(msg);
     }
 
@@ -343,6 +367,15 @@ function getDteById(dtes, id) {
         var dte = dtes[i];
         if (dte.instruction === id) return dte;
     }
+
+}
+
+function getPlants(req, res, next) {
+
+    models.plants.findAll().then(plants => {
+        req.plants = plants;
+        return next();
+    });
 
 }
 

@@ -2,8 +2,22 @@ var d;
 var from;
 var to;
 var year;
+var idCompany;
 
 $(function () {
+
+    idCompany = $('#idCompany').val();
+    $('#idCompany').change(function () {
+        idCompany = $(this).val();
+
+        if (table1.length > 0) {
+            table1.api().ajax.reload(null, false);
+        }
+
+        if (table2.length > 0) {
+            table2.api().ajax.reload(null, false);
+        }
+    });
 
     var chartType1 = $(this).find('#chartType1 option:selected').val();
     setTimeBySelection(chartType1);
@@ -231,7 +245,8 @@ function GetDataEnergy() {
         Highcharts.chart('container', {
             chart: {
                 type: 'areaspline',
-                height: 600
+                height: 600,
+                zoomType: 'x'
             },
             title: {
                 text: 'PLANTs ENERGY'
@@ -261,7 +276,7 @@ function GetDataEnergy() {
 
 
 function GetDataMoney() {
-    $.get("/dashboards/getDataMoney/", { year: year }, function (result) {
+    $.get("/dashboards/getDataMoney/", { year: year, idCompany: idCompany}, function (result) {
 
 
         Highcharts.theme = {
@@ -496,13 +511,13 @@ function GetDataMoney() {
             yAxis: [{
                 min: 0,
                 title: {
-                    text: 'aa'
+                    text: 'Venta'
                 }
             },
             {
                 min: 0,
                 title: {
-                    text: 'bb'
+                    text: 'Compra'
                 },
                 opposite: true
             }],

@@ -6,7 +6,8 @@ class FacturacionCL {
 
     constructor(config) {
 
-        this.endpoint = "http://ws.facturacion.cl/WSDS/wsplano.asmx?wsdl=0";
+        //this.endpoint = "http://ws.facturacion.cl/WSDS/wsplano.asmx?wsdl=0";
+        this.endpoint = "./public/wsdl/wsplano.wsdl";
         this.config = config;
 
         this.gmapApiKey = this.config.vendor.gmapApiKey;
@@ -141,7 +142,15 @@ class FacturacionCL {
     loadInvoice(instruction, xml, type, callback) {
         var args = {};
 
-        soap.createClient(this.endpoint, function (err, client) {
+        logger.log("Connect to ..." + this.endpoint);
+
+        var options = {
+            wsdl_options: { timeout: 10000 }
+        };
+
+        soap.createClient(this.endpoint, options, function (err, client) {
+
+            logger.log("Connected to " + facturacion_cl.endpoint);
 
             args = {
                 login: facturacion_cl.login,
@@ -149,8 +158,9 @@ class FacturacionCL {
                 formato: type
             }
 
+            logger.log("Creating Invoice");
             client.Procesar(args, function (err, result, rawResponse, soapHeader, rawRequest) {
-
+                logger.log("Created Invoice");
                 if (err) {
                     logger.log("error");
                     return callback(err, false);
@@ -187,8 +197,11 @@ class FacturacionCL {
                     }
                 }
 
-                cen.putAuxiliaryFiles(data, function (err, invoice_file_id, file_url) {
+                if (data.err) return callback(data.err, false);
 
+                logger.log("Loading into CEN");
+                cen.putAuxiliaryFiles(data, function (err, invoice_file_id, file_url) {
+                    logger.log("Loaded into CEN");
                     if (err) return callback(err, false);
                     data['invoice_file_id_cen'] = invoice_file_id;
                     data['file_url_cen'] = file_url;

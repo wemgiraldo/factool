@@ -40,7 +40,25 @@ exports.mainDashboard = [
         req.nPayS = 0;
         req.nPayP = 0;
 
+        req.plantsFilterC = {
+            $or: []
+        }
+
+        req.plantsFilterD = {
+            $or: []
+        }
+
         next();
+    },
+    getPlants,
+    function (req, res, next) {
+        async.forEachOf(req.plants, function (value, key, callback) {
+            req.plantsFilterC.$or.push({ "creditor": value.company_cen_id });
+            req.plantsFilterD.$or.push({ "debtor": value.company_cen_id });
+            callback();
+        }, function (err) {
+            next();
+        });
     },
     function (req, res, next) {
         //venta
@@ -48,7 +66,7 @@ exports.mainDashboard = [
         req.filter['created_ts'] = {
             $between: [req.firstDay, req.lastDay]
         }
-        req.filter['creditor'] = app.locals.idCompany;
+        req.filter['$or'] = req.plantsFilterC.$or;
         models.instructions.findAll({ where: req.filter }).then(instr => {
             req.instrVenta = instr;
             next();
@@ -60,7 +78,7 @@ exports.mainDashboard = [
         req.filter['created_ts'] = {
             $between: [req.firstDay, req.lastDay]
         }
-        req.filter['debtor'] = app.locals.idCompany;
+        req.filter['$or'] = req.plantsFilterD.$or;
         models.instructions.findAll({ where: req.filter }).then(instr => {
             req.instrCompra = instr;
             next();
@@ -84,14 +102,16 @@ exports.mainDashboard = [
             next();
         });
     },
+    getPlants,
     function (req, res) {
-        return res.render("dashboards/dashboard", { statistics: { salesPI: req.nInvS, purchasesPI: req.nInvP, salesPP: req.nPayS, purchasesPP: req.nPayP } });
+        return res.render("dashboards/dashboard", { plants: req.plants, statistics: { salesPI: req.nInvS, purchasesPI: req.nInvP, salesPP: req.nPayS, purchasesPP: req.nPayP } });
     }]
 
 /* getDataMoney */
 exports.getDataMoney = [
     function (req, res, next) {
         req.year = req.query.year;
+        req.idCompany = req.query.idCompany;
         req.firstDay = new Date(req.year, 01, 01);
         req.lastDay = new Date(req.year, 12, 31);
 
@@ -100,7 +120,25 @@ exports.getDataMoney = [
         req.compra = new Array(13).fill(0);
         req.compra.splice(0, 1);
 
+        req.plantsFilterC = {
+            $or: []
+        }
+
+        req.plantsFilterD = {
+            $or: []
+        }
+
         next();
+    },
+    getPlants,
+    function (req, res, next) {
+        async.forEachOf(req.plants, function (value, key, callback) {
+            req.plantsFilterC.$or.push({ "creditor": value.company_cen_id });
+            req.plantsFilterD.$or.push({ "debtor": value.company_cen_id });
+            callback();
+        }, function (err) {
+            next();
+        });
     },
     function (req, res, next) {
         //compra
@@ -108,7 +146,7 @@ exports.getDataMoney = [
         req.filter['created_ts'] = {
             $between: [req.firstDay, req.lastDay]
         }
-        req.filter['debtor'] = app.locals.idCompany;
+        req.filter['$or'] = req.plantsFilterD.$or;
 
         models.instructions.findAll({
             attributes: [
@@ -137,7 +175,8 @@ exports.getDataMoney = [
         req.filter['created_ts'] = {
             $between: [req.firstDay, req.lastDay]
         }
-        req.filter['creditor'] = app.locals.idCompany;
+        
+        req.filter['$or'] = req.plantsFilterC.$or;
 
         models.instructions.findAll({
             attributes: [
@@ -242,3 +281,11 @@ exports.getDataEnergy = [
         res.send(req.series)
     }]
 
+function getPlants(req, res, next) {
+
+    models.plants.findAll().then(plants => {
+        req.plants = plants;
+        return next();
+    });
+
+}

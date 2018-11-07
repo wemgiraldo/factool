@@ -9,6 +9,14 @@ $(document).ready(function () {
     var idCompany = $('#idCompany').val();
     $('#idCompany').change(function () {
         idCompany = $(this).val();
+
+        if (table1.length > 0) {
+            table1.api().ajax.reload(null, false);
+        }
+
+        if (table2.length > 0) {
+            table2.api().ajax.reload(null, false);
+        }
     });
 
     var year = $(this).find('#year option:selected').val();
@@ -396,7 +404,7 @@ $(document).ready(function () {
         var loading = document.getElementById('onCreateInvoice');
         loading.style.visibility = 'visible';
 
-        var intervalId = setInterval(updateLog, 3000);
+        var intervalId = setInterval(updateLog("creation"), 3000);
 
         $.post("/instructions/createInvoice/", { list: list.join(",") }, function (result) {
             clearTimeout(intervalId);
@@ -406,11 +414,11 @@ $(document).ready(function () {
             if (table1.length > 0) {
                 table1.api().ajax.reload(null, false);
             }
-    
+
             if (table2.length > 0) {
                 table2.api().ajax.reload(null, false);
             }
-            
+
             $("#closeLog").click(function () {
                 $("#process-log-container").remove();
             });
@@ -428,8 +436,31 @@ $(document).ready(function () {
             list.push(this.name);
         });
 
-        $.post("/instructions/acceptInvoice/", { list: list }, function (result) {
-            return alert(result);
+        var loading = document.getElementById('onAcceptRejectInvoice');
+        loading.style.visibility = 'visible';
+
+        var intervalId = setInterval(updateLog("acceptance"), 1000);
+
+        $.post("/instructions/acceptInvoice/", { list: list.join(",") }, function (result) {
+            //return alert(result);
+            clearTimeout(intervalId);
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                $("#process-log-container").remove();
+            });
+
+            loading.style.visibility = 'hidden';
         });
     });
 
@@ -440,14 +471,37 @@ $(document).ready(function () {
             list.push(this.name);
         });
 
-        $.post("/instructions/rejectInvoice/", { list: list }, function (result) {
-            return alert(result);
+        var loading = document.getElementById('onAcceptRejectInvoice');
+        loading.style.visibility = 'visible';
+
+        var intervalId = setInterval(updateLog("rejection"), 1000);
+
+        $.post("/instructions/rejectInvoice/", { list: list.join(",") }, function (result) {
+            //return alert(result);
+            clearTimeout(intervalId);
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                $("#process-log-container").remove();
+            });
+
+            loading.style.visibility = 'hidden';
         });
     });
 
 });
 
-function updateLog() {
+function updateLog(type) {
 
     var logContainer = $("#process-log-container");
 
@@ -455,7 +509,7 @@ function updateLog() {
         logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
     }
 
-    $.post("/instructions/updateLog", { log: "creation" }, function (result) {
+    $.post("/instructions/updateLog", { log: type }, function (result) {
         if (result.length > 0) {
             var t = new Date();
             logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
@@ -463,5 +517,4 @@ function updateLog() {
     });
 
 };
-
 

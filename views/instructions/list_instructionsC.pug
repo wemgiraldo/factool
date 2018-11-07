@@ -10,8 +10,8 @@ block content
     form.form-inline
 
         select#idCompany.ml-3.mr-3.form-control
-            option 339
-            option 340
+            each plant in plants
+                option(value=plant.company_cen_id)=plant.company_cen_id + " - " + plant.company_cen_name
 
         select#year.mr-3.form-control
             option(selected)=moment().format('YYYY')

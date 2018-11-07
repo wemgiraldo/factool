@@ -1,0 +1,696 @@
+<?xml version="1.0" encoding="utf-8"?>
+<definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s0="http://tempuri.org" name="wsplano" targetNamespace="http://tempuri.org" xmlns="http://schemas.xmlsoap.org/wsdl/">
+  <types>
+    <xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:complexType name="logininfo">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="1" name="Usuario" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Rut" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Clave" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="Puerto" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="1" name="IncluyeLink" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="Procesar">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="file" type="xs:string" />
+            <xs:element minOccurs="1" maxOccurs="1" name="formato" type="xs:int" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ProcesarResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="ProcesarResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ObtenerLink">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tpomov" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="folio" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tipo" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="cedible" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ObtenerLinkResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="ObtenerLinkResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getBoletaTicket">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="ticket" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getBoletaTicketResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="getBoletaTicketResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getXMLDte">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tpomov" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="folio" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tipo" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getXMLDteResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="getXMLDteResult" type="xs:base64Binary" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="AltNum">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="folio" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tipo" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="campo" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="AltNumResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="AltNumResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="RegIP">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="puerto" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="RegIPResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="RegIPResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getIP">
+        <xs:complexType />
+      </xs:element>
+      <xs:element name="getIPResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="getIPResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EliminarDoc">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tpomov" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="folio" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tipo" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="EliminarDocResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="EliminarDocResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="AnularGuia">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="login" type="s0:logininfo" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tpomov" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="folio" type="xs:string" />
+            <xs:element minOccurs="0" maxOccurs="1" name="tipo" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="AnularGuiaResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="AnularGuiaResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Online">
+        <xs:complexType />
+      </xs:element>
+      <xs:element name="OnlineResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="OnlineResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Version">
+        <xs:complexType />
+      </xs:element>
+      <xs:element name="VersionResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" name="VersionResult" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="string" nillable="true" type="xs:string" />
+    </xs:schema>
+  </types>
+  <message name="ProcesarSoapIn">
+    <part name="parameters" element="s0:Procesar" />
+  </message>
+  <message name="ProcesarSoapOut">
+    <part name="parameters" element="s0:ProcesarResponse" />
+  </message>
+  <message name="ObtenerLinkSoapIn">
+    <part name="parameters" element="s0:ObtenerLink" />
+  </message>
+  <message name="ObtenerLinkSoapOut">
+    <part name="parameters" element="s0:ObtenerLinkResponse" />
+  </message>
+  <message name="getBoletaTicketSoapIn">
+    <part name="parameters" element="s0:getBoletaTicket" />
+  </message>
+  <message name="getBoletaTicketSoapOut">
+    <part name="parameters" element="s0:getBoletaTicketResponse" />
+  </message>
+  <message name="getXMLDteSoapIn">
+    <part name="parameters" element="s0:getXMLDte" />
+  </message>
+  <message name="getXMLDteSoapOut">
+    <part name="parameters" element="s0:getXMLDteResponse" />
+  </message>
+  <message name="AltNumSoapIn">
+    <part name="parameters" element="s0:AltNum" />
+  </message>
+  <message name="AltNumSoapOut">
+    <part name="parameters" element="s0:AltNumResponse" />
+  </message>
+  <message name="RegIPSoapIn">
+    <part name="parameters" element="s0:RegIP" />
+  </message>
+  <message name="RegIPSoapOut">
+    <part name="parameters" element="s0:RegIPResponse" />
+  </message>
+  <message name="getIPSoapIn">
+    <part name="parameters" element="s0:getIP" />
+  </message>
+  <message name="getIPSoapOut">
+    <part name="parameters" element="s0:getIPResponse" />
+  </message>
+  <message name="EliminarDocSoapIn">
+    <part name="parameters" element="s0:EliminarDoc" />
+  </message>
+  <message name="EliminarDocSoapOut">
+    <part name="parameters" element="s0:EliminarDocResponse" />
+  </message>
+  <message name="AnularGuiaSoapIn">
+    <part name="parameters" element="s0:AnularGuia" />
+  </message>
+  <message name="AnularGuiaSoapOut">
+    <part name="parameters" element="s0:AnularGuiaResponse" />
+  </message>
+  <message name="OnlineSoapIn">
+    <part name="parameters" element="s0:Online" />
+  </message>
+  <message name="OnlineSoapOut">
+    <part name="parameters" element="s0:OnlineResponse" />
+  </message>
+  <message name="VersionSoapIn">
+    <part name="parameters" element="s0:Version" />
+  </message>
+  <message name="VersionSoapOut">
+    <part name="parameters" element="s0:VersionResponse" />
+  </message>
+  <message name="getIPHttpGetIn" />
+  <message name="getIPHttpGetOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <message name="OnlineHttpGetIn" />
+  <message name="OnlineHttpGetOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <message name="VersionHttpGetIn" />
+  <message name="VersionHttpGetOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <message name="getIPHttpPostIn" />
+  <message name="getIPHttpPostOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <message name="OnlineHttpPostIn" />
+  <message name="OnlineHttpPostOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <message name="VersionHttpPostIn" />
+  <message name="VersionHttpPostOut">
+    <part name="Body" element="s0:string" />
+  </message>
+  <portType name="wsplanoSoap">
+    <operation name="Procesar">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite procesar el archivo de integración</wsdl:documentation>
+      <input message="s0:ProcesarSoapIn" />
+      <output message="s0:ProcesarSoapOut" />
+    </operation>
+    <operation name="ObtenerLink">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el link del documento.</wsdl:documentation>
+      <input message="s0:ObtenerLinkSoapIn" />
+      <output message="s0:ObtenerLinkSoapOut" />
+    </operation>
+    <operation name="getBoletaTicket">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el link de la Boleta Electronica segun el Nro. de TICKET.</wsdl:documentation>
+      <input message="s0:getBoletaTicketSoapIn" />
+      <output message="s0:getBoletaTicketSoapOut" />
+    </operation>
+    <operation name="getXMLDte">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el XML del documento. (SERVICIO ADICIONAL)</wsdl:documentation>
+      <input message="s0:getXMLDteSoapIn" />
+      <output message="s0:getXMLDteSoapOut" />
+    </operation>
+    <operation name="AltNum">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el numero alternativo del documento (definido por el usuario en un campo adicional)</wsdl:documentation>
+      <input message="s0:AltNumSoapIn" />
+      <output message="s0:AltNumSoapOut" />
+    </operation>
+    <operation name="RegIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Registra la IP para un puerto determinado.</wsdl:documentation>
+      <input message="s0:RegIPSoapIn" />
+      <output message="s0:RegIPSoapOut" />
+    </operation>
+    <operation name="getIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtener la IP remota del cliente.</wsdl:documentation>
+      <input message="s0:getIPSoapIn" />
+      <output message="s0:getIPSoapOut" />
+    </operation>
+    <operation name="EliminarDoc">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite Eliminar un Documento No Electronico en el sistema.</wsdl:documentation>
+      <input message="s0:EliminarDocSoapIn" />
+      <output message="s0:EliminarDocSoapOut" />
+    </operation>
+    <operation name="AnularGuia">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite Marcar como anulada una Guia de Despacho Electronica en el sistema.</wsdl:documentation>
+      <input message="s0:AnularGuiaSoapIn" />
+      <output message="s0:AnularGuiaSoapOut" />
+    </operation>
+    <operation name="Online">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica el estado del servicio web.</wsdl:documentation>
+      <input message="s0:OnlineSoapIn" />
+      <output message="s0:OnlineSoapOut" />
+    </operation>
+    <operation name="Version">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica la versión del servicio web.</wsdl:documentation>
+      <input message="s0:VersionSoapIn" />
+      <output message="s0:VersionSoapOut" />
+    </operation>
+  </portType>
+  <portType name="wsplanoSoap12">
+    <operation name="Procesar">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite procesar el archivo de integración</wsdl:documentation>
+      <input message="s0:ProcesarSoapIn" />
+      <output message="s0:ProcesarSoapOut" />
+    </operation>
+    <operation name="ObtenerLink">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el link del documento.</wsdl:documentation>
+      <input message="s0:ObtenerLinkSoapIn" />
+      <output message="s0:ObtenerLinkSoapOut" />
+    </operation>
+    <operation name="getBoletaTicket">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el link de la Boleta Electronica segun el Nro. de TICKET.</wsdl:documentation>
+      <input message="s0:getBoletaTicketSoapIn" />
+      <output message="s0:getBoletaTicketSoapOut" />
+    </operation>
+    <operation name="getXMLDte">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el XML del documento. (SERVICIO ADICIONAL)</wsdl:documentation>
+      <input message="s0:getXMLDteSoapIn" />
+      <output message="s0:getXMLDteSoapOut" />
+    </operation>
+    <operation name="AltNum">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtiene el numero alternativo del documento (definido por el usuario en un campo adicional)</wsdl:documentation>
+      <input message="s0:AltNumSoapIn" />
+      <output message="s0:AltNumSoapOut" />
+    </operation>
+    <operation name="RegIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Registra la IP para un puerto determinado.</wsdl:documentation>
+      <input message="s0:RegIPSoapIn" />
+      <output message="s0:RegIPSoapOut" />
+    </operation>
+    <operation name="getIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtener la IP remota del cliente.</wsdl:documentation>
+      <input message="s0:getIPSoapIn" />
+      <output message="s0:getIPSoapOut" />
+    </operation>
+    <operation name="EliminarDoc">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite Eliminar un Documento No Electronico en el sistema.</wsdl:documentation>
+      <input message="s0:EliminarDocSoapIn" />
+      <output message="s0:EliminarDocSoapOut" />
+    </operation>
+    <operation name="AnularGuia">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Permite Marcar como anulada una Guia de Despacho Electronica en el sistema.</wsdl:documentation>
+      <input message="s0:AnularGuiaSoapIn" />
+      <output message="s0:AnularGuiaSoapOut" />
+    </operation>
+    <operation name="Online">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica el estado del servicio web.</wsdl:documentation>
+      <input message="s0:OnlineSoapIn" />
+      <output message="s0:OnlineSoapOut" />
+    </operation>
+    <operation name="Version">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica la versión del servicio web.</wsdl:documentation>
+      <input message="s0:VersionSoapIn" />
+      <output message="s0:VersionSoapOut" />
+    </operation>
+  </portType>
+  <portType name="wsplanoHttpGet">
+    <operation name="getIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtener la IP remota del cliente.</wsdl:documentation>
+      <input message="s0:getIPHttpGetIn" />
+      <output message="s0:getIPHttpGetOut" />
+    </operation>
+    <operation name="Online">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica el estado del servicio web.</wsdl:documentation>
+      <input message="s0:OnlineHttpGetIn" />
+      <output message="s0:OnlineHttpGetOut" />
+    </operation>
+    <operation name="Version">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica la versión del servicio web.</wsdl:documentation>
+      <input message="s0:VersionHttpGetIn" />
+      <output message="s0:VersionHttpGetOut" />
+    </operation>
+  </portType>
+  <portType name="wsplanoHttpPost">
+    <operation name="getIP">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Obtener la IP remota del cliente.</wsdl:documentation>
+      <input message="s0:getIPHttpPostIn" />
+      <output message="s0:getIPHttpPostOut" />
+    </operation>
+    <operation name="Online">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica el estado del servicio web.</wsdl:documentation>
+      <input message="s0:OnlineHttpPostIn" />
+      <output message="s0:OnlineHttpPostOut" />
+    </operation>
+    <operation name="Version">
+      <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Indica la versión del servicio web.</wsdl:documentation>
+      <input message="s0:VersionHttpPostIn" />
+      <output message="s0:VersionHttpPostOut" />
+    </operation>
+  </portType>
+  <binding name="wsplanoSoap" type="s0:wsplanoSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <operation name="Procesar">
+      <soap:operation soapAction="http://tempuri.org/Procesar" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="ObtenerLink">
+      <soap:operation soapAction="http://tempuri.org/ObtenerLink" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getBoletaTicket">
+      <soap:operation soapAction="http://tempuri.org/getBoletaTicket" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getXMLDte">
+      <soap:operation soapAction="http://tempuri.org/getXMLDte" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="AltNum">
+      <soap:operation soapAction="http://tempuri.org/AltNum" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="RegIP">
+      <soap:operation soapAction="http://tempuri.org/RegIP" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getIP">
+      <soap:operation soapAction="http://tempuri.org/getIP" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="EliminarDoc">
+      <soap:operation soapAction="http://tempuri.org/EliminarDoc" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="AnularGuia">
+      <soap:operation soapAction="http://tempuri.org/AnularGuia" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="Online">
+      <soap:operation soapAction="http://tempuri.org/Online" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+    <operation name="Version">
+      <soap:operation soapAction="http://tempuri.org/Version" style="document" />
+      <input>
+        <soap:body use="literal" />
+      </input>
+      <output>
+        <soap:body use="literal" />
+      </output>
+    </operation>
+  </binding>
+  <binding name="wsplanoSoap12" type="s0:wsplanoSoap12">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <operation name="Procesar">
+      <soap12:operation soapAction="http://tempuri.org/Procesar" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="ObtenerLink">
+      <soap12:operation soapAction="http://tempuri.org/ObtenerLink" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getBoletaTicket">
+      <soap12:operation soapAction="http://tempuri.org/getBoletaTicket" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getXMLDte">
+      <soap12:operation soapAction="http://tempuri.org/getXMLDte" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="AltNum">
+      <soap12:operation soapAction="http://tempuri.org/AltNum" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="RegIP">
+      <soap12:operation soapAction="http://tempuri.org/RegIP" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="getIP">
+      <soap12:operation soapAction="http://tempuri.org/getIP" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="EliminarDoc">
+      <soap12:operation soapAction="http://tempuri.org/EliminarDoc" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="AnularGuia">
+      <soap12:operation soapAction="http://tempuri.org/AnularGuia" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="Online">
+      <soap12:operation soapAction="http://tempuri.org/Online" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+    <operation name="Version">
+      <soap12:operation soapAction="http://tempuri.org/Version" style="document" />
+      <input>
+        <soap12:body use="literal" />
+      </input>
+      <output>
+        <soap12:body use="literal" />
+      </output>
+    </operation>
+  </binding>
+  <binding name="wsplanoHttpGet" type="s0:wsplanoHttpGet">
+    <http:binding verb="GET" />
+    <operation name="getIP">
+      <http:operation location="/getIP" />
+      <input>
+        <http:urlEncoded />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+    <operation name="Online">
+      <http:operation location="/Online" />
+      <input>
+        <http:urlEncoded />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+    <operation name="Version">
+      <http:operation location="/Version" />
+      <input>
+        <http:urlEncoded />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+  </binding>
+  <binding name="wsplanoHttpPost" type="s0:wsplanoHttpPost">
+    <http:binding verb="POST" />
+    <operation name="getIP">
+      <http:operation location="/getIP" />
+      <input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+    <operation name="Online">
+      <http:operation location="/Online" />
+      <input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+    <operation name="Version">
+      <http:operation location="/Version" />
+      <input>
+        <mime:content type="application/x-www-form-urlencoded" />
+      </input>
+      <output>
+        <mime:mimeXml part="Body" />
+      </output>
+    </operation>
+  </binding>
+  <service name="wsplano">
+    <wsdl:documentation xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">Servicio de Integracion, Facturacion Electronica DESIS LTDA.</wsdl:documentation>
+    <port name="wsplanoSoap" binding="s0:wsplanoSoap">
+      <soap:address location="http://ws.facturacion.cl/WSDS/wsplano.asmx" />
+    </port>
+    <port name="wsplanoSoap12" binding="s0:wsplanoSoap12">
+      <soap12:address location="http://ws.facturacion.cl/WSDS/wsplano.asmx" />
+    </port>
+    <port name="wsplanoHttpGet" binding="s0:wsplanoHttpGet">
+      <http:address location="http://ws.facturacion.cl/WSDS/wsplano.asmx" />
+    </port>
+    <port name="wsplanoHttpPost" binding="s0:wsplanoHttpPost">
+      <http:address location="http://ws.facturacion.cl/WSDS/wsplano.asmx" />
+    </port>
+  </service>
+</definitions>

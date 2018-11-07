@@ -258,12 +258,12 @@ exports.showProcesoPago = [
 
         } else {
 
-            req.filterInstrPay['debtor'] = req.params.idCompany;
+            req.filterInstrPay['debtor'] = 339;
             req.filterInstrPay['status_billed'] = {
                 $gte: 2
             }
             req.filterInstrPay['status_paid'] = {
-                $eq: 1
+                $gte: 1
             }
         }
         next();

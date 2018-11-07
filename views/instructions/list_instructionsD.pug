@@ -17,8 +17,8 @@ block content
     form.form-inline
 
         select#idCompany.ml-3.mr-3.form-control
-            option 339
-            option 340
+            each plant in plants
+                option(value=plant.company_cen_id)=plant.company_cen_id + " - " + plant.company_cen_name
 
         select#year.mr-3.form-control
             option(selected)=moment().format('YYYY')
@@ -38,7 +38,8 @@ block content
 
         a(class="btn btn-backend m-3" id="setAsAccepted" ) Set as Accepted
         a(class="btn btn-backend m-3" id="setAsRejected" ) Set as Rejected
-
+        i(class="fas fa-sync-alt fa-spin fa-1x fa-fw" id="onAcceptRejectInvoice" style="visibility: hidden")
+        
     .col-sm#listinstructionsD-container
         table.table.table-hover.mt-5(data-title='LIST OF PURCHASES INVOICE')
             thead
