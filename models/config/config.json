@@ -34,10 +34,10 @@
     }
   },
   "production": {
-    "username": "root",
-    "password": "Birba2366!",
-    "database": "factool",
-    "host": "127.0.0.1",
+    "username": "bdf153e26ccfe9",
+    "password": "817b5223",
+    "database": "heroku_9245d3abc27d0b4",
+    "host": "eu-cdbr-west-02.cleardb.net",
     "dialect": "mysql",
     "define": {
       "timestamps": false
