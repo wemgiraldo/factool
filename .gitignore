@@ -19,6 +19,4 @@ inst/*
 log/*
 nbproject
 .vscode
-#public/invoice/pdf/*
-#public/invoice/xml/*
 
