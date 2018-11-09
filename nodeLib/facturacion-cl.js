@@ -6,8 +6,8 @@ class FacturacionCL {
 
     constructor(config) {
 
-        //this.endpoint = "http://ws.facturacion.cl/WSDS/wsplano.asmx?wsdl=0";
-        this.endpoint = "./public/wsdl/wsplano.wsdl";
+        this.endpoint = "http://ws.facturacion.cl/WSDS/wsplano.asmx?wsdl=0";
+        this.endpoint_local = path.join(global.appRoot, '/public/wsdl/wsplano.wsdl');
         this.config = config;
 
         this.gmapApiKey = this.config.vendor.gmapApiKey;
@@ -126,7 +126,7 @@ class FacturacionCL {
             var xmlEncoded64 = Buffer.from(json2xml).toString('base64');
 
             // SAVE THE XML IN A LOCAL FOLDER 
-            var xml = require('fs').writeFileSync('./public/invoice/xml/F' + folio + 'T33.xml', json2xml, 'utf8');
+            var xml = require('fs').writeFileSync(path.join(global.appRoot, '/public/invoice/xml/F' + folio + 'T33.xml'), json2xml, 'utf8');
 
             facturacion_cl.loadInvoice(instruction, xmlEncoded64, "2", function (err, result) {
                 if (err) {

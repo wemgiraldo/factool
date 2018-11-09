@@ -63,9 +63,8 @@ class CEN {
     putAuxiliaryFiles(data, callback) {
 
         var fs = require('fs');
-        //var path = '/var/www/vhosts/wemworld.eu/factool.wemworld.eu/public/invoice/pdf/F' + data.folio + 'T' + data.type + '.pdf';
-        //var path = './public/invoice/pdf/F155312T33.pdf';
-        var path = './public/invoice/pdf/F' + data.folio + 'T' + data.type + '.pdf';
+        var path = require('path');
+        var path = path.join(global.appRoot, '/public/invoice/pdf/F' + data.folio + 'T' + data.type + '.pdf');
 
         this.getFileFromUrl(data.urlCedible, path, function () {
 

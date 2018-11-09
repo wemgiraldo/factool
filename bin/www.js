@@ -18,13 +18,16 @@ models = require('../models');
 async = require("async");
 json2xls = require('json2xls');
 XLSX = require('xlsx');
+path = require('path');
 
 httpServer = null;
 config = null;
 cen = null;
 higecoDriver = null;
 
-configPath = "./config/config.json";
+global.appRoot = path.resolve(__dirname.replace('bin', ''));
+
+configPath = path.join(global.appRoot, '/config/config.json')
 
 /**
  *  Configuration

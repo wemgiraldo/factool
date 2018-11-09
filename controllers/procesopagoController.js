@@ -125,7 +125,7 @@ exports.createNominaPago = [
         });
     },
     function (req, res, next) {
-        req.pathXls = './public/nomina_pagos/nominaPagos_' + moment().format('L').replace(new RegExp("/", "g"), '') + '.xls';
+        req.pathXls = path.join(global.appRoot, '/public/nomina_pagos/nominaPagos_' + moment().format('L').replace(new RegExp("/", "g"), '') + '.xls');
         var wb = XLSX.utils.book_new();
         var ws = XLSX.utils.json_to_sheet(req.toXls, { skipHeader: 1 });
         XLSX.utils.book_append_sheet(wb, ws, "No Header");
