@@ -442,7 +442,7 @@ $(document).ready(function () {
         });
 
         updateLogSetAsInvoiced();
-        var intervalId = setInterval(updateLogSetAsInvoiced, 1000);
+        var intervalId = setInterval(updateLogSetAsInvoiced, 3000);
 
         $.post("/instructions/setAsInvoiced/", { list: list.join(","), status_billed: 2 }, function (result) {
 
@@ -471,7 +471,7 @@ $(document).ready(function () {
         });
 
         updateLogSetAsInvoiced();
-        var intervalId = setInterval(updateLogSetAsInvoiced, 100);
+        var intervalId = setInterval(updateLogSetAsInvoiced, 3000);
 
         $.post("/instructions/setAsInvoiced/", { list: list.join(","), status_billed: 3 }, function (result) {
 
@@ -500,7 +500,7 @@ $(document).ready(function () {
         });
 
         updateLogSetAsPaid();
-        var intervalId = setInterval(updateLogSetAsPaid, 100);
+        var intervalId = setInterval(updateLogSetAsPaid, 3000);
 
         $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 2 }, function (result) {
 
@@ -529,7 +529,7 @@ $(document).ready(function () {
         });
 
         updateLogSetAsPaid();
-        var intervalId = setInterval(updateLogSetAsPaid, 100);
+        var intervalId = setInterval(updateLogSetAsPaid, 3000);
 
         $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 3 }, function (result) {
 
@@ -561,7 +561,7 @@ $(document).ready(function () {
         loading.style.visibility = 'visible';
 
         updateLogCreation();
-        var intervalId = setInterval(updateLogCreation, 100);
+        var intervalId = setInterval(updateLogCreation, 3000);
 
         $.post("/instructions/createInvoice/", { list: list.join(",") }, function (result) {
 
@@ -597,7 +597,7 @@ $(document).ready(function () {
         loading.style.visibility = 'visible';
 
         updateLogAcceptance();
-        var intervalId = setInterval(updateLogAcceptance, 100);
+        var intervalId = setInterval(updateLogAcceptance, 3000);
 
         $.post("/instructions/acceptInvoice/", { list: list.join(",") }, function (result) {
 
@@ -632,7 +632,7 @@ $(document).ready(function () {
         loading.style.visibility = 'visible';
 
         updateLogRejection();
-        var intervalId = setInterval(updateLogRejection, 100);
+        var intervalId = setInterval(updateLogRejection, 3000);
 
         $.post("/instructions/rejectInvoice/", { list: list.join(",") }, function (result) {
 
