@@ -17,10 +17,10 @@
     }
   },
   "test": {
-    "username": "root",
-    "password": "Birba2366!",
+    "username": "factool",
+    "password": "F@cT00l!",
     "database": "factool",
-    "host": "127.0.0.1",
+    "host": "31.14.128.186",
     "dialect": "mysql",
     "define": {
       "timestamps": false
