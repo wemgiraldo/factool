@@ -112,7 +112,7 @@ function updateMeasurements(higecoDriver, filter, callback) {
                 var data = {
                     item_id: item.id,
                     plant_id: plant_id,
-                    timestamp: moment.unix(value[0]).utc(),
+                    timestamp: moment.unix(value[0]).utc().toDate(),
                     value: value[1]
                 }
 

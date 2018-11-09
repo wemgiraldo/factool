@@ -61,8 +61,8 @@ function initServer() {
   /**
   * Configure APP parameters and application wide locals used in pug
   */
-
-  var port = config.general.port;
+ 
+  var port = process.env.PORT || config.general.port;
 
   app.set('port', port);
   app.locals.moment = require('moment');
