@@ -23,7 +23,8 @@ path = require('path');
 httpServer = null;
 config = null;
 cen = null;
-higecoDriver = null;
+facturacion_cl = null;
+higeco_driver = null;
 
 global.appRoot = path.resolve(__dirname.replace('bin', ''));
 
@@ -102,7 +103,7 @@ function initAPI() {
 
   cen = new CEN_API(config);
   facturacion_cl = new FacturacionCL_API(config);
-  higecoDriver = new HigecoPortalDriver(config);
+  higeco_driver = new HigecoPortalDriver(config);
 }
 
 /**

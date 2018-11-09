@@ -14,10 +14,10 @@ class HigecoPortalDriver {
 
         // GET AUTH TOKEN
         this.getToken(this.username, this.password, function (err, token) {
-            higecoDriver.authtoken = token;
+            higeco_driver.authtoken = token;
 
             // REFRESH DATA EACH 15mins
-            higecoDriver.refreshData();
+            higeco_driver.refreshData();
         });
 
     }
@@ -81,16 +81,16 @@ class HigecoPortalDriver {
 
         setTimeout(function () {
 
-            higecoDriver.refreshData();
+            higeco_driver.refreshData();
 
         }, (this.config.higecoAPI.refreshPeriod));
 
     }
 }
 
-function updateMeasurements(higecoDriver, filter, callback) {
+function updateMeasurements(higeco_driver, filter, callback) {
 
-    higecoDriver.getMeasurements(filter, function (err, resp) {
+    higeco_driver.getMeasurements(filter, function (err, resp) {
 
         if (err) return logger.log(err);
         // IF NO RESULTS -> EXIT
