@@ -24,11 +24,15 @@ block content
 
         select#month.form-control
             each month,index in months
-                if index === moment().add('month').format('M')
+                if index === moment().add(-1,'month').format('M')
                     option(value=index selected)=month
                 else
                     option(value=index)=month
 
+        
+        a(class="btn btn-backend m-3" id="setAsPaid" ) Set as Paid
+        a(class="btn btn-backend m-3" id="setAsPaidAtrasado" ) Set as Paid Atrasado
+        
         a(class="btn btn-backend m-3" id="createInvoice" ) Create Invoices
         i(class="fas fa-sync-alt fa-spin fa-1x fa-fw" id="onCreateInvoice" style="visibility: hidden")
         
@@ -44,9 +48,10 @@ block content
                     th.debtor Debtor
                     th.amount Amount Net
                     th.amount_gross Amount Gross
-                    //th.status Status
                     th.status_bill Status Billed
                     th.status_paid Status Paid
+                    th.status_paid2 Status Paid 2
+                    th.paid_ts Payment Date
                     th.folio DTE Number
                     th.type_dte DTE Type
                     th.urlDTE URL DTE

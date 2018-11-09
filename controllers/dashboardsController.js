@@ -175,7 +175,7 @@ exports.getDataMoney = [
         req.filter['created_ts'] = {
             $between: [req.firstDay, req.lastDay]
         }
-        
+
         req.filter['$or'] = req.plantsFilterC.$or;
 
         models.instructions.findAll({
@@ -232,7 +232,7 @@ exports.getDataEnergy = [
         req.series = [];
 
         async.forEachOf(req.plants, function (value, key, callback) {
-            req.series.push({ name: value.name, item_id: value.item_id, data: new Array(req.nSamples).fill(null) });
+            req.series.push({ name: value.name, plant_id: value.plant_id, item_id: value.item_id, data: new Array(req.nSamples).fill(null) });
             callback();
         }, function (err) {
             next();
@@ -243,6 +243,7 @@ exports.getDataEnergy = [
         async.forEachOf(req.series, function (value, key, callback) {
             var serie = value;
             req.filter['item_id'] = value.item_id;
+            req.filter['plant_id'] = value.plant_id;
 
             models.measurements.findAll({
                 attributes: [

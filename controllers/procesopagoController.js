@@ -195,11 +195,8 @@ exports.closeNominaPago = [
         var lists = req.proceso.dtes.split(",");
         var data = {};
 
-
-
         asyncLoop(lists.length, function (loop) {
             id = lists[loop.iteration()];
-
 
             models.instructions.findAll({ where: { id_cen: id }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
                 req.instruction = instr[0];

@@ -17,13 +17,16 @@ block content
                     td=company.name
                   tr
                     th RUT
-                    td=company.rut + company.verification_code
+                    td=company.rut + "-" + company.verification_code
                   tr
                     th Business Name
                     td=company.business_name
                   tr
                     th Commercial Business
                     td=company.commercial_business
+                  tr
+                    th DTE Reception email
+                    td=company.dte_reception_email
                   tr
                     th Bank Account
                     td=company.bank_account
@@ -33,3 +36,54 @@ block content
                   tr
                     th Commercial Address
                     td=company.commercial_address
+                  tr
+                    th Postal Address
+                    td=company.postal_address
+                  tr
+                    th Manager
+                    td=company.manager
+    .col-sm-8
+      .d-flex.flex-wrap.mt-5.ml-2
+
+          .card.mx-3.flex-grow-1
+            .card-header.card-heading-dark.mb-3 PAYMENT CONTACT
+            table.table
+                  tr
+                    th First Name
+                    td=company.p_c_first_name
+                  tr
+                    th Last Name
+                    td=company.p_c_last_name
+                  tr
+                    th Address
+                    td=company.p_c_address
+                  tr
+                    th Phones
+                    td=company.p_c_phones
+                  tr
+                    th Email
+                    td=company.p_c_email
+
+    .col-sm-8
+      .d-flex.flex-wrap.mt-5.ml-2
+
+          .card.mx-3.flex-grow-1
+            .card-header.card-heading-dark.mb-3 BILLS CONTACT
+            table.table
+                  tr
+                    th First Name
+                    td=company.b_c_first_name
+                  tr
+                    th Last Name
+                    td=company.b_c_last_name
+                  tr
+                    th Address
+                    td=company.b_c_address
+                  tr
+                    th Phones
+                    td=company.b_c_phones
+                  tr
+                    th Email
+                    td=company.b_c_email
+
+          

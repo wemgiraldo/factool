@@ -25,6 +25,8 @@ router.post('/instructions/createNominaPago/', procesopagoController.createNomin
 router.post('/instructions/closeNominaPago/', procesopagoController.closeNominaPago);
 
 
+/* SET AS PAID */
+router.post('/instructions/setAsPaid/', instructionsController.setAsPaid);
 
 
 /* CREATE A NEW PROCESO DE PAGO */

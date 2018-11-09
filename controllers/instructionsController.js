@@ -21,7 +21,7 @@ const operatorsAliases = {
     */
 }
 
-var log = { creation: [], acceptance: [], rejection: [] };
+var log = { creation: [], acceptance: [], rejection: [], setAsPaid: [], setAsInvoiced: [] };
 
 
 /* 
@@ -80,18 +80,9 @@ exports.listInstructionsD = [
                 ingr.debtor_info.name,
                 ingr.amount,
                 ingr.amount_gross,
-                //ingr.closed,
-                //ingr.status,
                 getBillingStById(req.billing_status_type, ingr.status_billed),
                 getPaymentStById(req.payment_status_type, ingr.status_paid),
-                //ingr.resolution,
-                //ingr.max_payment_date,
-                //ingr.informed_paid_amount,
-                //ingr.is_paid,
-                //ingr.aux_data_payment_matrix_natural_key,
-                //ingr.aux_data_payment_matrix_concept,
-                //ingr.created_ts,
-                //ingr.updated_ts,
+                ingr.status_billed_2,
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
                 (dte !== undefined) ? dte.emission_file : "",
@@ -116,8 +107,8 @@ exports.listInstructionsD = [
         req.months[8] = "August";
         req.months[9] = "September";
         req.months[10] = "October";
-        req.months[12] = "November";
-        req.months[13] = "December";
+        req.months[11] = "November";
+        req.months[12] = "December";
 
         return res.render("instructions/list_instructionsD", { type: req.type, months: req.months, plants: req.plants });
 
@@ -172,18 +163,11 @@ exports.listInstructionsC = [
                 ingr.debtor_info.name,
                 ingr.amount,
                 ingr.amount_gross,
-                //ingr.closed,
-                //ingr.status,
                 getBillingStById(req.billing_status_type, ingr.status_billed),
                 getPaymentStById(req.payment_status_type, ingr.status_paid),
-                //ingr.resolution,
-                //ingr.max_payment_date,
-                //ingr.informed_paid_amount,
-                //ingr.is_paid,
-                //ingr.aux_data_payment_matrix_natural_key,
-                //ingr.aux_data_payment_matrix_concept,
-                //ingr.created_ts,
-                //ingr.updated_ts,
+                //ingr.status_billed_2,
+                ingr.status_paid_2,
+                ingr.paid_ts,
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
                 (dte !== undefined) ? dte.emission_file : "",
@@ -208,12 +192,72 @@ exports.listInstructionsC = [
         req.months[8] = "August";
         req.months[9] = "September";
         req.months[10] = "October";
-        req.months[12] = "November";
-        req.months[13] = "December";
+        req.months[11] = "November";
+        req.months[12] = "December";
 
         return res.render("instructions/list_instructionsC", { type: req.type, months: req.months, plants: req.plants });
 
     }]
+
+/* SET AS PAID */
+exports.setAsPaid = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            return res.send("No invoices selected!");
+        }
+        logger.log("START SETASPAID INVOICES: " + req.body.list);
+        log["setAsPaid"].push("START SETASPAID INVOICES: " + req.body.list);
+
+        var status_paid = req.body.status_paid;
+        var lists = req.body.list.split(",");
+
+        async.forEachOf(lists, function (value, key, callback) {
+            models.instructions.findOne({ where: { id_cen: value }, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
+                instr.updateAttributes({ status_paid_2: status_paid, paid_ts: new Date() });
+                logger.log("SETASPAID INVOICES DONE: " + value);
+                log["setAsPaid"].push("SETASPAID INVOICES DONE: " + value);
+                callback();
+            });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res) {
+        return res.send({ res: "OK" });
+    }
+]
+
+/* SET AS INVOICED */
+exports.setAsInvoiced = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            return res.send("No invoices selected!");
+        }
+        logger.log("START SETASINVOICED INVOICES: " + req.body.list);
+        log["setAsInvoiced"].push("START SETASINVOICED INVOICES: " + req.body.list);
+
+        var status_billed = req.body.status_billed;
+        var lists = req.body.list.split(",");
+
+        async.forEachOf(lists, function (value, key, callback) {
+            models.instructions.findOne({ where: { id_cen: value }, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
+                instr.updateAttributes({ status_billed_2: status_billed });
+                logger.log("SETASINVOICED INVOICES DONE: " + value);
+                log["setAsInvoiced"].push("SETASINVOICED INVOICES DONE: " + value);
+                callback();
+            });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res) {
+        return res.send({ res: "OK" });
+    }
+]
 
 /* CREATE INVOICEs */
 exports.createInvoice = [
@@ -235,7 +279,10 @@ exports.createInvoice = [
                 models.payment_matrices.findAll({ where: { id_cen: req.instruction.payment_matrix }, limit: 1, include: [{ model: models.billing_windows, as: "billingWindow", include: [{ model: models.billing_type, as: "billingType" }] }] }).then(function (payment_matrix) {
                     req.payment_matrix = payment_matrix[0];
                     facturacion_cl.createInvoice33XML(req.instruction, req.payment_matrix, function (err, result) {
-                        if (err) return loop.error(err);
+                        if (err) {
+                            log["creation"].push(err);
+                            return loop.error(err);
+                        }
                         logger.log("Invoice n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
                         log["creation"].push("Invoice n°: " + req.instruction.id_cen + " created! sent to CEN! saved!");
                         return loop.next();
@@ -246,6 +293,7 @@ exports.createInvoice = [
             function (err) {
                 if (err) {
                     logger.log(err);
+                    log["creation"].push(err);
                     return res.send({ res: "ERR", msg: err });
                 }
                 next();
@@ -255,6 +303,7 @@ exports.createInvoice = [
         cen.refreshData("DteC", function () {
             cen.refreshData("InstructionsC", function () {
                 req.flash("success", "Invoices created!");
+                log["creation"].push("Invoices created!");
                 return res.send({ res: "OK" });
             });
         });

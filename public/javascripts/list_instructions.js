@@ -91,13 +91,43 @@ $(document).ready(function () {
             {
                 "targets": "status_paid",
                 "render": function (data, type, row) {
-                    switch (data) {
-                        case "No Pagado":
-                            return "<span class='badge badge-danger'>No Pagado</span>";
-                        case "Pagado":
-                            return "<span class='badge badge-success'>Pagado</span>";
-                        case "Pagado con Atraso":
-                            return "<span class='badge badge-warning'>Pagado con Atraso</span>";
+                    if (row[9] === 2) {
+                        switch (data) {
+                            case "No Pagado":
+                                return "<span class='badge badge-primary'>Pagado</span>";
+                            case "Pagado":
+                                return "<span class='badge badge-success'>Pagado</span>";
+                            case "Pagado con Atraso":
+                                return "<span class='badge badge-warning'>Pagado con Atraso</span>";
+                        }
+                    } else if (row[9] === 3) {
+                        switch (data) {
+                            case "No Pagado":
+                                return "<span class='badge badge-primary'>Pagado con Atraso</span>";
+                            case "Pagado":
+                                return "<span class='badge badge-success'>Pagado</span>";
+                            case "Pagado con Atraso":
+                                return "<span class='badge badge-warning'>Pagado con Atraso</span>";
+                        }
+                    } else {
+                        switch (data) {
+                            case "No Pagado":
+                                return "<span class='badge badge-danger'>No Pagado</span>";
+                            case "Pagado":
+                                return "<span class='badge badge-success'>Pagado</span>";
+                            case "Pagado con Atraso":
+                                return "<span class='badge badge-warning'>Pagado con Atraso</span>";
+                        }
+                    }
+                },
+            },
+            {
+                "targets": "paid_ts",
+                "render": function (data, type, row) {
+                    if (data) {
+                        return moment(data).format("YYYY-MM-DD hh:mm");
+                    } else {
+                        return "";
                     }
                 },
             },
@@ -121,6 +151,11 @@ $(document).ready(function () {
             },
             {
                 "targets": "creditor",
+                "visible": false,
+                "searchable": false
+            },
+            {
+                "targets": "status_paid2",
                 "visible": false,
                 "searchable": false
             },
@@ -266,6 +301,11 @@ $(document).ready(function () {
                 "searchable": false
             },
             {
+                "targets": "status_bill2",
+                "visible": false,
+                "searchable": false
+            },
+            {
                 "targets": "urlDTE",
                 "visible": false,
                 "searchable": false
@@ -273,7 +313,7 @@ $(document).ready(function () {
             {
                 "targets": "folio",
                 "render": function (data, type, row) {
-                    return "<a href=" + row[12] + ">" + data + "</a>";
+                    return "<a href=" + row[13] + ">" + data + "</a>";
                 }
             }
         ],
@@ -394,20 +434,17 @@ $(document).ready(function () {
         }
     });
 
-    $('#createInvoice').click(function () {
-        var table = $('#listinstructionsC-container table').DataTable();
+    $('#setAsInvoiced').click(function () {
+        var table = $('#listinstructionsD-container table').DataTable();
         var list = [];
         table.$("input[type='checkbox']:checked").each(function () {
             list.push(this.name);
         });
 
-        var loading = document.getElementById('onCreateInvoice');
-        loading.style.visibility = 'visible';
+        updateLogSetAsInvoiced();
+        var intervalId = setInterval(updateLogSetAsInvoiced, 1000);
 
-        var intervalId = setInterval(updateLog("creation"), 3000);
-
-        $.post("/instructions/createInvoice/", { list: list.join(",") }, function (result) {
-            clearTimeout(intervalId);
+        $.post("/instructions/setAsInvoiced/", { list: list.join(","), status_billed: 2 }, function (result) {
 
             $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
 
@@ -420,6 +457,126 @@ $(document).ready(function () {
             }
 
             $("#closeLog").click(function () {
+                clearTimeout(intervalId);
+                $("#process-log-container").remove();
+            });
+        });
+    });
+
+    $('#setAsInvoicedDelaye').click(function () {
+        var table = $('#listinstructionsD-container table').DataTable();
+        var list = [];
+        table.$("input[type='checkbox']:checked").each(function () {
+            list.push(this.name);
+        });
+
+        updateLogSetAsInvoiced();
+        var intervalId = setInterval(updateLogSetAsInvoiced, 100);
+
+        $.post("/instructions/setAsInvoiced/", { list: list.join(","), status_billed: 3 }, function (result) {
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                clearTimeout(intervalId);
+                $("#process-log-container").remove();
+            });
+        });
+    });
+
+    $('#setAsPaid').click(function () {
+        var table = $('#listinstructionsC-container table').DataTable();
+        var list = [];
+        table.$("input[type='checkbox']:checked").each(function () {
+            list.push(this.name);
+        });
+
+        updateLogSetAsPaid();
+        var intervalId = setInterval(updateLogSetAsPaid, 100);
+
+        $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 2 }, function (result) {
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                clearTimeout(intervalId);
+                $("#process-log-container").remove();
+            });
+        });
+    });
+
+    $('#setAsPaidAtrasado').click(function () {
+        var table = $('#listinstructionsC-container table').DataTable();
+        var list = [];
+        table.$("input[type='checkbox']:checked").each(function () {
+            list.push(this.name);
+        });
+
+        updateLogSetAsPaid();
+        var intervalId = setInterval(updateLogSetAsPaid, 100);
+
+        $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 3 }, function (result) {
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                clearTimeout(intervalId);
+                $("#process-log-container").remove();
+            });
+        });
+    });
+
+    $('#createInvoice').click(function () {
+        var table = $('#listinstructionsC-container table').DataTable();
+        var list = [];
+        table.$("input[type='checkbox']:checked").each(function () {
+            list.push(this.name);
+        });
+
+        var loading = document.getElementById('onCreateInvoice');
+        loading.style.visibility = 'visible';
+
+        updateLogCreation();
+        var intervalId = setInterval(updateLogCreation, 100);
+
+        $.post("/instructions/createInvoice/", { list: list.join(",") }, function (result) {
+
+            $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+            $("#closeLog").click(function () {
+                clearTimeout(intervalId);
                 $("#process-log-container").remove();
             });
 
@@ -439,11 +596,10 @@ $(document).ready(function () {
         var loading = document.getElementById('onAcceptRejectInvoice');
         loading.style.visibility = 'visible';
 
-        var intervalId = setInterval(updateLog("acceptance"), 1000);
+        updateLogAcceptance();
+        var intervalId = setInterval(updateLogAcceptance, 100);
 
         $.post("/instructions/acceptInvoice/", { list: list.join(",") }, function (result) {
-            //return alert(result);
-            clearTimeout(intervalId);
 
             $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
 
@@ -457,6 +613,7 @@ $(document).ready(function () {
             }
 
             $("#closeLog").click(function () {
+                clearTimeout(intervalId);
                 $("#process-log-container").remove();
             });
 
@@ -474,11 +631,10 @@ $(document).ready(function () {
         var loading = document.getElementById('onAcceptRejectInvoice');
         loading.style.visibility = 'visible';
 
-        var intervalId = setInterval(updateLog("rejection"), 1000);
+        updateLogRejection();
+        var intervalId = setInterval(updateLogRejection, 100);
 
         $.post("/instructions/rejectInvoice/", { list: list.join(",") }, function (result) {
-            //return alert(result);
-            clearTimeout(intervalId);
 
             $("#log").append("<button class='btn btn-backend m-3' id='closeLog'>Close</button>");
 
@@ -492,6 +648,7 @@ $(document).ready(function () {
             }
 
             $("#closeLog").click(function () {
+                clearTimeout(intervalId);
                 $("#process-log-container").remove();
             });
 
@@ -501,7 +658,7 @@ $(document).ready(function () {
 
 });
 
-function updateLog(type) {
+function updateLogCreation() {
 
     var logContainer = $("#process-log-container");
 
@@ -509,7 +666,7 @@ function updateLog(type) {
         logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
     }
 
-    $.post("/instructions/updateLog", { log: type }, function (result) {
+    $.post("/instructions/updateLog", { log: "creation" }, function (result) {
         if (result.length > 0) {
             var t = new Date();
             logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
@@ -518,3 +675,70 @@ function updateLog(type) {
 
 };
 
+function updateLogRejection() {
+
+    var logContainer = $("#process-log-container");
+
+    if (logContainer.length === 0) {
+        logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
+    }
+
+    $.post("/instructions/updateLog", { log: "rejection" }, function (result) {
+        if (result.length > 0) {
+            var t = new Date();
+            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
+        }
+    });
+
+};
+
+function updateLogAcceptance() {
+
+    var logContainer = $("#process-log-container");
+
+    if (logContainer.length === 0) {
+        logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
+    }
+
+    $.post("/instructions/updateLog", { log: "acceptance" }, function (result) {
+        if (result.length > 0) {
+            var t = new Date();
+            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
+        }
+    });
+
+};
+
+function updateLogSetAsPaid() {
+
+    var logContainer = $("#process-log-container");
+
+    if (logContainer.length === 0) {
+        logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
+    }
+
+    $.post("/instructions/updateLog", { log: "setAsPaid" }, function (result) {
+        if (result.length > 0) {
+            var t = new Date();
+            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
+        }
+    });
+
+};
+
+function updateLogSetAsInvoiced() {
+
+    var logContainer = $("#process-log-container");
+
+    if (logContainer.length === 0) {
+        logContainer = $("<div id='process-log-container'> <div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw'></i> </h3></div></div>").appendTo("body");
+    }
+
+    $.post("/instructions/updateLog", { log: "setAsInvoiced" }, function (result) {
+        if (result.length > 0) {
+            var t = new Date();
+            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
+        }
+    });
+
+};

@@ -49,6 +49,7 @@ class HigecoPortalDriver {
             },
             url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.getTime() / 1000 + "&to=" + data.to.getTime() / 1000
         }, function (err, res, body) {
+            if (res.statusCode !== 200) return callback(res.statusMessage, false)
             if (err) return callback(err, false)
             var result = JSON.parse(body);
             var path = res.request.path.split("/");
@@ -68,7 +69,7 @@ class HigecoPortalDriver {
         models.plants.findAll().then(plants => {
 
             async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 1), to: new Date(2018, 10, 5) }, function () {
+                updateMeasurements(me, { plant: value, from: new Date(2018, 9, 30), to: new Date(2018, 10, 1) }, function () {
                     callback();
                 });
             }, function (err) {
@@ -90,10 +91,12 @@ class HigecoPortalDriver {
 function updateMeasurements(higecoDriver, filter, callback) {
 
     higecoDriver.getMeasurements(filter, function (err, resp) {
+
+        if (err) return logger.log(err);
         // IF NO RESULTS -> EXIT
-        if (!resp.data) return;
-        if (resp.data.length === 0) return;
-        
+        if (!resp.data) return logger.log("NO DATA");
+        if (resp.data.length === 0) return logger.log("NO DATA");
+
         var plant_id = resp.plant_id;
         var device_id = resp.device_id;
 
@@ -102,6 +105,10 @@ function updateMeasurements(higecoDriver, filter, callback) {
             var item = value;
             async.forEachOf(resp.data, function (value, key, callback) {
 
+                if (value[1] === '#E3') {
+                    value[1] = null; 
+                }
+
                 var data = {
                     item_id: item.id,
                     plant_id: plant_id,
@@ -109,7 +116,7 @@ function updateMeasurements(higecoDriver, filter, callback) {
                     value: value[1]
                 }
 
-                models.measurements.findOrCreate({ where: { timestamp: data.timestamp, item_id: data.item_id } })
+                models.measurements.findOrCreate({ where: { timestamp: data.timestamp, plant_id: plant_id, item_id: data.item_id } })
                     .spread((record, created) => {
                         record.updateAttributes(data);
                         callback();

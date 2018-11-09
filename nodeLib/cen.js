@@ -29,9 +29,9 @@ class CEN {
         // SET THE DEFAULT COMPANY IDs
         this.getPlants(function () {
             // REFRESH DATA EACH 15min
-           // cen.refreshData(function(){
-           //     logger.log("Refresh ok");
-           // });
+            //cen.refreshData(function () {
+            //    logger.log("REFRESH DATA COMPLETED");
+            //});
         });
 
     }
@@ -776,6 +776,11 @@ class CEN {
 
     refreshData(options, callback) {
 
+        if (typeof (options) === "function" && typeof (callback) === "undefined") {
+            callback = options;
+            options = undefined;
+        }
+
         var me = this;
 
         async.forEachOf(me.plants, function (value, key, callback) {
@@ -883,7 +888,7 @@ class CEN {
                 }
             }
         }, function (err) {
-            logger.log("refreshData COMPLETED");
+            //logger.log("refreshData COMPLETED");
             callback();
         });
     }

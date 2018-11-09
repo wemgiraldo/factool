@@ -49,6 +49,14 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    status_billed_2: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    status_paid_2: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
     resolution: {
       type: DataTypes.TEXT,
       allowNull: true
@@ -78,6 +86,10 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true
     },
     updated_ts: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    paid_ts: {
       type: DataTypes.DATE,
       allowNull: true
     }
