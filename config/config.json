@@ -1,0 +1,30 @@
+{
+    "general": {
+        "name": "FacTool",
+        "port": "3000"
+    },
+    "debug": {
+        "DEBUG": "on",
+        "LOGPHPCALL": false,
+        "LOGSQLCALL": false,
+        "LOGHTTPCALL": "on",
+        "FILESYSTEMACT": "on",
+        "logStringMaxLength": "1000",
+        "LOG": "{\"level\":\"dbg\",\"file\":\"log/factool.log\",\"stdout\":true,\"color\":false,\"maxLogLength\":1000}"
+    },
+    "cenAPI": {
+        "refreshPeriod": "900000",
+        "username": "e.isla@buildingenergy.it",
+        "password": "123parronal",
+        "idCompanyDefault": "339"
+    },
+    "higecoAPI": {
+        "refreshPeriod": "900000",
+        "username": "building" ,
+        "password": "building2012",
+        "endpoint": "http://buildingenergy2.gwc4-web.com"
+    },
+    "vendor": {
+        "gmapApiKey": "AIzaSyCHscsTuqTnSHaRbZjVD0glmYLRfneBfqA"
+    }
+}

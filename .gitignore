@@ -8,7 +8,7 @@
 *.hig64
 *.hig86
 *.sublime*
-config/config.json
+#config/config.json
 config/config.json.old
 
 # Folders
