@@ -21,12 +21,14 @@ router.post('/instructions/createInvoice/', instructionsController.createInvoice
 /* CREATE NOMINA PAGO */
 router.post('/instructions/createNominaPago/', procesopagoController.createNominaPago);
 
-/* CREATE A NEW PROCESO DE PAGO */
+/* CLOSE NOMINA PAGO */
 router.post('/instructions/closeNominaPago/', procesopagoController.closeNominaPago);
-
 
 /* SET AS PAID */
 router.post('/instructions/setAsPaid/', instructionsController.setAsPaid);
+
+/* SET AS INVOICED */
+router.post('/instructions/setAsInvoiced/', instructionsController.setAsInvoiced);
 
 
 /* CREATE A NEW PROCESO DE PAGO */
@@ -36,16 +38,15 @@ router.post('/instructions/createProcesoPago/', procesopagoController.createProc
 router.get('/instructions/showProcesoPago/:id/:idCompany', procesopagoController.showProcesoPago);
 
 
-
-
-/* ACCEPT INVOICES */
-router.post('/instructions/acceptInvoice/', instructionsController.acceptInvoice);
-
-/* REJECT INVOICES */
-router.post('/instructions/rejectInvoice/', instructionsController.rejectInvoice);
-
 /* update log */
 router.post('/instructions/updateLog/', instructionsController.updateLog);
+
+/* update log proceso pago*/
+router.post('/instructions/updateLogPago/', procesopagoController.updateLog);
+
+/* GET BANK ACCOUNT */
+router.get('/instructions/getBankAccount/', procesopagoController.getBankAccount);
+
 
 
 module.exports = router;

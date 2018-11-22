@@ -8,6 +8,10 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
         autoIncrement: true
       },
+      idCompany: {
+        type: DataTypes.BIGINT,
+        allowNull: true
+      },
       bank_account: {
         type: DataTypes.TEXT,
         allowNull: true

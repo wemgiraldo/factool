@@ -487,6 +487,7 @@ form button[type="submit"]{
   bottom:0.2rem;
 }
 
+
 /*
 * PROCESS LOG
 */
@@ -506,7 +507,7 @@ form button[type="submit"]{
   background-color: #f8f9fa;
   color: #121d20;
   padding: 5%;
-
+  text-align: center;
 }
 
 #log h3 {
@@ -518,5 +519,40 @@ form button[type="submit"]{
 }
 
 #log p {
+  margin: 0 0 0.5em 0;
+}
+
+
+/*
+* PROCESS
+*/
+
+#create-process-container {
+  background-color:rgba(73, 80, 87, 0.4);
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  z-index: 1000;
+}
+
+#process{
+  width: 80%;
+  margin: 10%;
+  background-color: #f8f9fa;
+  color: #121d20;
+  padding: 5%;
+  text-align: center;
+}
+
+#process h3 {
+  text-align: center;
+  color: #121d20;
+  margin-top: 0;
+  text-transform: uppercase;
+  margin-bottom: 1.4em;
+}
+
+#process p {
   margin: 0 0 0.5em 0;
 }

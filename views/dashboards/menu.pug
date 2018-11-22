@@ -1,0 +1,12 @@
+extends ../layout
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            a(class="nav-link", href="/dashboards/1") MAIN
+        li(class="nav-item")
+            a(class="nav-link", href="/dashboards/2/?year=2018&id=339") PRODUCTION TABLE
+        li(class="nav-item")
+            a(class="nav-link", href="/dashboards/3/?id=339") SAP DATA

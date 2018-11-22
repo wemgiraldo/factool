@@ -1,0 +1,29 @@
+extends menu
+
+block append scripts
+  script(src="/javascripts/list_dashboard2.js")
+
+block content
+  
+  form.form-inline.mt-3
+        select#idCompany.ml-3.mr-3.form-control
+            each plant in plants
+                option(value=plant.company_cen_id)=plant.company_cen_id + " - " + plant.company_cen_name
+
+        select#year.mr-3.form-control
+            option(selected)=moment().format('YYYY')
+            option=moment().add(1,'years').format('YYYY')
+            option=moment().add(2,'years').format('YYYY')
+            option=moment().add(3,'years').format('YYYY')
+            option=moment().add(-1,'years').format('YYYY')
+            option=moment().add(-2,'years').format('YYYY')
+            option=moment().add(-3,'years').format('YYYY')
+
+
+  .col-sm#listproductionPlants-container
+        table.table.table-hover.mt-5(data-title='LIST OF SALES INVOICE')
+            thead
+                tr  
+                    th.month Period
+                    th.amount_in Amount In
+                    th.amount_out Amount Out

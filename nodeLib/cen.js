@@ -21,17 +21,22 @@ class CEN {
         this.plants = {};
 
         // GET AUTH TOKEN
-        this.getToken(this.username, this.password);
+        this.getToken(this.username, this.password, function (err, token) {
+            if (err) {
+                return logger.log(err);
+            }
+            cen.authtoken = token;
+        });
 
         // GET DATA TYPES
-        //this.refreshDataTypes();
+        this.refreshDataTypes();
 
         // SET THE DEFAULT COMPANY IDs
         this.getPlants(function () {
             // REFRESH DATA EACH 15min
-            //cen.refreshData(function () {
-            //    logger.log("REFRESH DATA COMPLETED");
-            //});
+            cen.refreshData(function () {
+                logger.log("REFRESH DATA COMPLETED");
+            });
         });
 
     }
@@ -39,24 +44,24 @@ class CEN {
     getPlants(callback) {
         models.plants.findAll().then(plants => {
             cen.plants = plants
-            callback();
+            return callback();
         });
     }
 
     getFileFromUrl(url, path, callback) {
         var fs = require('fs');
 
-        if (!url) return callback(path);
+        if (!url) return callback("no url", false);
         logger.log(url);
         request
             .get(url)
             .pipe(fs.createWriteStream(path))
             .on('error', function (err) {
                 logger.log(err);
-                callback(err);
+                callback(err, false);
             })
             .on('finish', function () {
-                callback(path);
+                callback(null, true);
             });
     }
 
@@ -66,31 +71,35 @@ class CEN {
         var path = require('path');
         var path = path.join(global.appRoot, '/public/invoice/pdf/F' + data.folio + 'T' + data.type + '.pdf');
 
-        this.getFileFromUrl(data.urlCedible, path, function () {
+        //logger.log(data);
+        this.getFileFromUrl(data.urlCedible, path, function (err, result) {
 
-            logger.log(cen.authtoken);
-            logger.log(data.urlCedible);
-            logger.log(data.folio + data.type);
-            request({
-                method: 'PUT',
-                preambleCRLF: true,
-                postambleCRLF: true,
-                headers: {
-                    'Authorization': 'Token ' + cen.authtoken,
-                    'Content-Disposition': 'attachment; filename=F' + data.folio + 'T' + data.type + '.pdf'
-                },
-                uri: cen.endpoint + "/api/v1/resources/auxiliary-files/",
-                multipart: [
-                    {
-                        'content-type': 'application/pdf',
-                        body: fs.createReadStream(path)
-                    }
-                ]
-            }, function (err, res, body) {
-                if (err) return callback(err, null, null);
-                var result = JSON.parse(body);
-                return callback(null, result.invoice_file_id, result.file_url);
-            });
+            if (err) {
+                return callback(err, null, null);
+            }
+
+            if (result) {
+                request({
+                    method: 'PUT',
+                    preambleCRLF: true,
+                    postambleCRLF: true,
+                    headers: {
+                        'Authorization': 'Token ' + cen.authtoken,
+                        'Content-Disposition': 'attachment; filename=F' + data.folio + 'T' + data.type + '.pdf'
+                    },
+                    uri: cen.endpoint + "/api/v1/resources/auxiliary-files/",
+                    multipart: [
+                        {
+                            'content-type': 'application/pdf',
+                            body: fs.createReadStream(path)
+                        }
+                    ]
+                }, function (err, res, body) {
+                    if (err) return callback(err, null, null);
+                    var result = JSON.parse(body);
+                    return callback(null, result.invoice_file_id, result.file_url);
+                });
+            }
         });
     }
 
@@ -98,22 +107,38 @@ class CEN {
 
         var create_at = new Date(data.created_at);
 
-        var dataString = {
-            instruction: data.instruction,
-            type_sii_code: data.type,
-            folio: data.folio,
-            gross_amount: data.gross_amount,
-            net_amount: data.net_amount,
-            reported_by_creditor: true,
-            emission_dt: moment(create_at).format("Y-M-D"),
-            emission_file: data.invoice_file_id_cen,
-            emission_erp_a: "",
-            emission_erp_b: "",
-            reception_dt: moment(create_at).format("Y-M-D"),
-            reception_erp: "",
-            //acceptance_dt: "",
-            acceptance_erp: "",
-            acceptance_status: ""
+        if (data.reported_by_creditor) {
+            var dataString = {
+                instruction: data.instruction,
+                type_sii_code: data.type,
+                folio: data.folio,
+                gross_amount: data.gross_amount,
+                net_amount: data.net_amount,
+                reported_by_creditor: data.reported_by_creditor,
+                emission_dt: moment(create_at).format("Y-M-D"),
+                emission_file: data.invoice_file_id_cen,
+                emission_erp_a: "",
+                emission_erp_b: "",
+                reception_dt: moment(create_at).format("Y-M-D"),
+                reception_erp: "",
+                acceptance_erp: "",
+                acceptance_status: ""
+            }
+        } else {
+            var dataString = {
+                instruction: data.instruction,
+                type_sii_code: data.type,
+                folio: data.folio,
+                gross_amount: data.gross_amount,
+                net_amount: data.net_amount,
+                reported_by_creditor: data.reported_by_creditor,
+                emission_erp_a: "",
+                emission_erp_b: "",
+                reception_erp: "",
+                acceptance_dt: moment(data.acceptance_dt).format("Y-M-D"),
+                acceptance_erp: "",
+                acceptance_status: data.acceptance_status
+            }
         }
 
         request.post({
@@ -131,6 +156,7 @@ class CEN {
 
 
     }
+
 
     postAcceptedDte(data, callback) {
 
@@ -228,10 +254,9 @@ class CEN {
             }
         }, function (error, response, body) {
             if (error) {
-                console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error, null);
             }
-            cen.authtoken = body.token;
+            return callback(null, body.token);
         });
     }
 
@@ -253,7 +278,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/billing-status-type/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -278,7 +303,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/participants/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -303,7 +328,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/banks/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -328,7 +353,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/billing-types/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -353,7 +378,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/billing-windows/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -378,7 +403,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/dte-types/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -403,7 +428,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/payment-due-type/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -428,7 +453,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/payment-status-type/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -453,7 +478,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/dte-acceptance-status/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -478,7 +503,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/transaction-types/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -503,10 +528,10 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/instructions/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
-            callback(result);
+            return callback(result);
         });
     }
 
@@ -528,7 +553,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/payment-matrices/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -553,7 +578,7 @@ class CEN {
         request(this.endpoint + '/api/v1/resources/dtes/' + str_filter, function (error, response, body) {
             if (error) {
                 console.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             var result = JSON.parse(body);
             callback(result);
@@ -573,6 +598,7 @@ class CEN {
                 // GET BillingStatusType DATA
                 me.getBillingStatusType({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -583,7 +609,7 @@ class CEN {
                         }
                         updateOrCreate(models.billing_status_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -596,6 +622,7 @@ class CEN {
                 // GET PaymentStatusType DATA
                 me.getPaymentStatusType({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -606,7 +633,7 @@ class CEN {
                         }
                         updateOrCreate(models.payment_status_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -619,6 +646,7 @@ class CEN {
                 // GET Banks DATA
                 me.getBanks({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -631,7 +659,7 @@ class CEN {
                         }
                         updateOrCreate(models.banks, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -644,6 +672,7 @@ class CEN {
                 // GET BillingType DATA
                 me.getBillingType({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -659,7 +688,7 @@ class CEN {
                         }
                         updateOrCreate(models.billing_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -672,6 +701,7 @@ class CEN {
                 // GET DteAcceptanceStatus DATA
                 me.getDteAcceptanceStatus({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -682,7 +712,7 @@ class CEN {
                         }
                         updateOrCreate(models.dte_acceptance_status, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -695,6 +725,7 @@ class CEN {
                 // GET DteTypes DATA
                 me.getDteTypes({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -707,7 +738,7 @@ class CEN {
                         }
                         updateOrCreate(models.dte_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -720,6 +751,7 @@ class CEN {
                 // GET PaymentDueType DATA
                 me.getPaymentDueType({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -730,7 +762,7 @@ class CEN {
                         }
                         updateOrCreate(models.payment_due_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -743,6 +775,7 @@ class CEN {
                 // GET TransactionTypes DATA
                 me.getTransactionTypes({ limit: 5000, offset: 0 }, function (resp) {
                     // IF NO RESULTS -> EXIT
+                    if (!resp.results) return
                     if (resp.results.length === 0) return callback("No results for the API response.", false);
                     // UPDATE OR CREATE RECORDS
                     async.forEachOf(resp.results, function (value, key, callback) {
@@ -753,7 +786,7 @@ class CEN {
                         }
                         updateOrCreate(models.transaction_type, { id: data.id }, data, function (err) {
                             if (err) return callback(err);
-                            callback();
+                            return callback();
                         });
 
                     }, function (err) {
@@ -782,114 +815,195 @@ class CEN {
 
         var me = this;
 
-        async.forEachOf(me.plants, function (value, key, callback) {
-            var idCompany = value.company_cen_id;
-            if (value.enable !== 1) return callback();
-            if (!options) {
+        if (options) {
+            if (options.id) {
+
+                logger.log("START GET DATA " + options.filter + " FOR IDCOMPANY: " + options.id);
+
+                switch (options.filter) {
+                    case "Company":
+                        updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "BillingWindows":
+                        updateBillingWindows(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "InstructionsC":
+                        updateInstructions(me, { creditor: options.id, limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "InstructionsD":
+                        updateInstructions(me, { debtor: options.id, limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "PaymentMatrices":
+                        updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "DteC":
+                        updateDte(me, { creditor: options.id, limit: 10000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                    case "DteD":
+                        updateDte(me, { debtor: options.id, limit: 10000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            logger.log("GET DATA " + options.filter + " - OK");
+                            return callback();
+                        });
+                        break;
+                }
+
+            } else {
+
+                async.forEachOf(me.plants, function (value, key, callback) {
+                    logger.log("START GET DATA " + options + " FOR IDCOMPANY: " + idCompany);
+
+                    switch (options) {
+                        case "Company":
+                            updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "BillingWindows":
+                            updateBillingWindows(me, { limit: 5000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "InstructionsC":
+                            updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "InstructionsD":
+                            updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "PaymentMatrices":
+                            updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "DteC":
+                            updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                        case "DteD":
+                            updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                                if (err) return callback(err);
+                                logger.log("GET DATA " + options + " - OK");
+                                return callback();
+                            });
+                            break;
+                    }
+                }, function (err) {
+                    if (err) return callback(err);
+                    return callback();
+                });
+            }
+        } else {
+            async.forEachOf(me.plants, function (value, key, callback) {
+                var idCompany = value.company_cen_id;
+                if (value.enable !== 1) return callback();
+
                 logger.log("START GET DATA FOR IDCOMPANY: " + idCompany);
 
                 async.parallel([
                     function (callback) {
-                        updateCompany(me, { limit: 5000, offset: 0 }, function () {
-                            callback();
+                        updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function () {
-                            callback();
+                        updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function () {
-                            callback();
+                        updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function () {
-                            callback();
+                        updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
-                            callback();
+                        updateBillingWindows(me, { limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function () {
-                            callback();
+                        updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     },
                     function (callback) {
-                        updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function () {
-                            callback();
+                        updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
+                            if (err) return callback(err);
+                            return callback();
                         });
                     }
                 ],
                     // optional callback
                     function (err, results) {
-                        if (err) return logger.log("GET DATA " + idCompany + " - NOT OK: " + err);
+                        if (err) return callback(err);
                         logger.log("GET DATA " + idCompany + " - OK");
-                        callback();
+                        return callback();
                     });
 
                 setTimeout(function () {
 
-                    cen.refreshData();
+                    cen.refreshData(function (err) {
+                        if (err) logger.log(err);
+                    });
 
                 }, (cen.config.cenAPI.refreshPeriod));
 
-            } else {
-                logger.log("START GET DATA " + options + " FOR IDCOMPANY: " + idCompany);
-
-                switch (options) {
-                    case "Company":
-                        updateCompany(me, { limit: 5000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "BillingWindows":
-                        updateBillingWindows(me, { limit: 5000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "InstructionsC":
-                        updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "InstructionsD":
-                        updateInstructions(me, { debtor: idCompany, limit: 5000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "PaymentMatrices":
-                        updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "DteC":
-                        updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                    case "DteD":
-                        updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function () {
-                            logger.log("GET DATA " + options + " - OK");
-                            callback();
-                        });
-                        break;
-                }
-            }
-        }, function (err) {
-            //logger.log("refreshData COMPLETED");
-            callback();
-        });
+            }, function (err) {
+                //logger.log("refreshData COMPLETED");
+                return callback();
+            });
+        }
     }
 }
 
@@ -914,7 +1028,8 @@ function updateOrCreate(model, where, data, callback) {
 function updateCompany(cen, filter, callback) {
     cen.getCompany(filter, function (resp) {
         // IF NO RESULTS -> EXIT
-        if (resp.results.length === 0) return
+        if (!resp.results) return callback("Connection problem - API no work.", false);
+        if (resp.results.length === 0) return callback("No results for the API response.", false);
         // UPDATE OR CREATE RECORDS
         async.forEachOf(resp.results, function (value, key, callback) {
             var data = {
@@ -945,7 +1060,7 @@ function updateCompany(cen, filter, callback) {
             }
             updateOrCreate(models.company, { id: data.id }, data, function (err) {
                 if (err) return callback(err);
-                callback();
+                return callback();
             });
 
         }, function (err) {
@@ -960,7 +1075,8 @@ function updateInstructions(cen, filter, callback) {
     // GET Instructions Debtor DATA
     cen.getInstructions(filter, function (resp) {
         // IF NO RESULTS -> EXIT
-        if (resp.results.length === 0) return
+        if (!resp.results) return callback("Connection problem - API no work.", false);
+        if (resp.results.length === 0) return callback("No results for the API response.", false);
         // UPDATE OR CREATE RECORDS
         async.forEachOf(resp.results, function (value, key, callback) {
             var data = {
@@ -985,7 +1101,7 @@ function updateInstructions(cen, filter, callback) {
             }
             updateOrCreate(models.instructions, { id_cen: data.id_cen }, data, function (err) {
                 if (err) return callback(err);
-                callback();
+                return callback();
             });
 
         }, function (err) {
@@ -1000,7 +1116,8 @@ function updatePaymentMatrices(cen, filter, callback) {
     // GET PaymentMatrices DATA
     cen.getPaymentMatrices(filter, function (resp) {
         // IF NO RESULTS -> EXIT
-        if (resp.results.length === 0) return
+        if (!resp.results) return callback("Connection problem - API no work.", false);
+        if (resp.results.length === 0) return callback("No results for the API response.", false);
         // UPDATE OR CREATE RECORDS
         async.forEachOf(resp.results, function (value, key, callback) {
             var data = {
@@ -1027,7 +1144,7 @@ function updatePaymentMatrices(cen, filter, callback) {
             }
             updateOrCreate(models.payment_matrices, { id_cen: data.id_cen }, data, function (err) {
                 if (err) return callback(err);
-                callback();
+                return callback();
             });
 
         }, function (err) {
@@ -1042,7 +1159,8 @@ function updateDte(cen, filter, callback) {
     // GET DTEs DATA
     cen.getDte(filter, function (resp) {
         // IF NO RESULTS -> EXIT
-        if (resp.results.length === 0) return callback();
+        if (!resp.results) return callback("Connection problem - API no work.", false);
+        if (resp.results.length === 0) return callback("No results for the API response.", false);
         // UPDATE OR CREATE RECORDS
         async.forEachOf(resp.results, function (value, key, callback) {
             var data = {
@@ -1067,7 +1185,7 @@ function updateDte(cen, filter, callback) {
             }
             updateOrCreate(models.dte, { id_cen: data.id_cen }, data, function (err) {
                 if (err) return callback(err);
-                callback();
+                return callback();
             });
 
         }, function (err) {
@@ -1081,7 +1199,8 @@ function updateBillingWindows(cen, filter, callback) {
     // GET BillingWindows DATA
     cen.getBillingWindows(filter, function (resp) {
         // IF NO RESULTS -> EXIT
-        if (resp.results.length === 0) return
+        if (!resp.results) return callback("Connection problem - API no work.", false);
+        if (resp.results.length === 0) return callback("No results for the API response.", false);
         // UPDATE OR CREATE RECORDS
         async.forEachOf(resp.results, function (value, key, callback) {
             var data = {
@@ -1094,7 +1213,7 @@ function updateBillingWindows(cen, filter, callback) {
             }
             updateOrCreate(models.billing_windows, { id: data.id }, data, function (err) {
                 if (err) return callback(err);
-                callback();
+                return callback();
             });
 
         }, function (err) {

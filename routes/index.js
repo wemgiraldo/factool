@@ -7,17 +7,19 @@ const passport = require('passport');
 * AUTHENTICATION
 */
 
-router.get('/login', function(req, res) {
-    res.render('login', { user : req.user, flashMsg: req.flash('error') });
+router.get('/login', function (req, res) {
+    res.render('login', { user: req.user, flashMsg: req.flash('error') });
 });
 
 router.post('/login',
-  passport.authenticate('local', { successRedirect: '/',
-                                   failureRedirect: '/login',
-                                   failureFlash: true })
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/login',
+        failureFlash: true
+    })
 );
 
-router.get('/logout', function(req, res) {
+router.get('/logout', function (req, res) {
     req.logout();
     res.redirect('/login');
 });
@@ -26,9 +28,19 @@ router.get('/logout', function(req, res) {
 /* 
 * DEFAULT ROUTE
 */
-router.get('/', function(req, res) {
-    res.redirect('/dashboards');
+router.get('/', function (req, res) {
+    res.redirect('/dashboards/1');
 });
+
+/*
+* DOWNLOAD
+*/
+router.get('/download', function (req, res) {
+    res.download(path.join(global.appRoot, req.query.path), function (err) {
+        console.log(err);
+    });
+});
+
 
 /* 
 * CONFIG
@@ -57,10 +69,10 @@ router.all('/dashboards*', ensureAuthenticated, require('./dashboards'));
 //  the request will proceed.  Otherwise, the user will be redirected to the
 //  login page.
 function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) { 
+    if (req.isAuthenticated()) {
 
-        res.locals.currentUser=req.user;
-        return next(); 
+        res.locals.currentUser = req.user;
+        return next();
     }
     res.redirect('/login');
 }

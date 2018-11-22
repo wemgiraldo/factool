@@ -19,6 +19,7 @@ async = require("async");
 json2xls = require('json2xls');
 XLSX = require('xlsx');
 path = require('path');
+nodemailer = require('nodemailer');
 
 httpServer = null;
 config = null;
@@ -29,6 +30,7 @@ higeco_driver = null;
 global.appRoot = path.resolve(__dirname.replace('bin', ''));
 
 configPath = path.join(global.appRoot, '/config/config.json')
+
 
 /**
  *  Configuration

@@ -48,8 +48,8 @@ function GetDataEnergy() {
                 backgroundColor: {
                     linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
                     stops: [
-                        [0, '#2a2a2b'],
-                        [1, '#3e3e40']
+                        [0, '#1f2d30'],
+                        [1, '#1f2d30']
                     ]
                 },
                 style: {
@@ -276,7 +276,7 @@ function GetDataEnergy() {
 
 
 function GetDataMoney() {
-    $.get("/dashboards/getDataMoney/", { year: year, idCompany: idCompany}, function (result) {
+    $.get("/dashboards/getDataMoney/", { year: year, idCompany: idCompany }, function (result) {
 
 
         Highcharts.theme = {
@@ -286,8 +286,8 @@ function GetDataMoney() {
                 backgroundColor: {
                     linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
                     stops: [
-                        [0, '#2a2a2b'],
-                        [1, '#3e3e40']
+                        [0, '#1f2d30'],
+                        [1, '#1f2d30']
                     ]
                 },
                 style: {

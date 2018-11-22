@@ -6,6 +6,7 @@
 ----------------------------------------*/
 $(document).ready(function () {
 
+
     var idCompany = $('#idCompany').val();
     $('#idCompany').change(function () {
         idCompany = $(this).val();
@@ -13,12 +14,30 @@ $(document).ready(function () {
         if (table.length > 0) {
             table.api().ajax.reload(null, true);
         }
+
+    });
+
+    var year = $(this).find('#year option:selected').val();
+
+    $("#year").change(function () {
+        year = $(this).val();
+
+        if (table.length > 0) {
+            table.api().ajax.reload(null, false);
+        }
     });
 
     //get DataTable table object
-    var table = $("#listprocesoPago-container table").dataTable({
+    var table = $("#listproductionPlants-container table").dataTable({
         "columnDefs": [
-
+            {
+                "targets": "amount_in",
+                "render": $.fn.dataTable.render.number('.', ',', 0, '$')
+            },
+            {
+                "targets": "amount_out",
+                "render": $.fn.dataTable.render.number('.', ',', 0, '$')
+            }
         ],
         buttons: [
             {
@@ -34,7 +53,7 @@ $(document).ready(function () {
         ],
         "destroy": true,
         "dom": "<'row table-toolbar'<'col-sm mr-auto content-title'><'col-sm ml-auto justify-content-end'fB>><'row'<'col-sm't>><'row'<'col-sm mr-auto'i><'col-sm ml-auto'p>>",
-        "iDisplayLength": 10,
+        "iDisplayLength": 12,
         "ordering": true,
         "order": [],
         "orderCellsTop": false,
@@ -49,8 +68,7 @@ $(document).ready(function () {
         "retrieve": true,
         "language": {
             "search": "",
-            "emptyTable": "Nothing worth to be shown",
-            "thousands": ","
+            "emptyTable": "Nothing worth to be shown"
         },
         "initComplete": function (settings, json) {
 
@@ -63,59 +81,19 @@ $(document).ready(function () {
 
         },
         "ajax": {
-            "url": "/instructions/listProcesoPago/",
+            "url": "/dashboards/2/",
             "type": "GET",
             "data": function (d) {
                 d.id = idCompany;
+                d.year = year;
             }
         }
+
     });
 
     //update data
     setInterval(function () {
         table.api().ajax.reload(null, false);
     }, 60000);
-
-    $('#createProcesoPago').click(function () {
-
-        var bankaccount = prompt("Please enter your bank account", "");
-        if (!bankaccount) return alert("insert a valid bank account");
-        var notes = prompt("Please enter your notes", "");
-
-        $.post("/instructions/createProcesoPago/", { bank_account: bankaccount, notes: notes, idCompany: idCompany }, function (result) {
-            table.api().ajax.reload(null, false);
-            return alert(result);
-        });
-
-        /*
-        $.get("/instructions/getBankAccount/", { idCompany: idCompany }, function (result) {
-            var bank_acc_sel = document.getElementById('bank_acc_proc');
-            $.each(result, function (k, v) {
-                var opt = document.createElement('option');
-                opt.text = v.account_number;
-                opt.value = k;
-                bank_acc_sel.appendChild(opt);
-            })
-        });
-
-
-            bankaccount = $('#bank_acc_proc selected').val();
-            notes =$('#notes_proc').val();
-            $.post("/instructions/createProcesoPago/", { bank_account: bankaccount, notes: notes, idCompany: idCompany }, function (result) {
-                table.api().ajax.reload(null, false);
-                return alert(result);
-            });
-        });
-*/
-    });
-
-    $('#listprocesoPago-container table tbody').on('click', 'tr', function () {
-
-        var id = $(this).find("td").eq(0).text();
-
-        window.location.href = "/instructions/showProcesoPago/" + id + "/" + idCompany;
-
-    });
-
 
 });

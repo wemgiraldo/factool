@@ -21,6 +21,7 @@ const operatorsAliases = {
     */
 }
 
+var log = { creation: [], closing: [] };
 
 /* 
 *
@@ -28,18 +29,30 @@ const operatorsAliases = {
 * 
 */
 
-/* LIST OF PROCESOS DE PAGO */
+/* LIST OF PROCESO DE PAGO */
 exports.listProcesoPago = [
-    getProcesosList,
-    function (req, res) {
+    function (req, res, next) {
 
+        req.filterProc = {};
+        if (!req.query.id) {
+            req.filterProc["idCompany"] = req.params.id;
+        } else {
+            req.filterProc["idCompany"] = req.query.id;
+        }
+
+        next();
+    },
+    getProcesosList,
+    getPlants,
+    function (req, res, next) {
         var data = { data: [] };
 
-        for (var i = 0; i < req.procesos.length; i++) {
-            var proc = req.procesos[i];
+        for (var i = 0; i < req.proceso.length; i++) {
+            var proc = req.proceso[i];
 
             data.data.push([
                 proc.id,
+                proc.idCompany,
                 proc.bank_account,
                 proc.notes,
                 proc.created_at,
@@ -51,9 +64,28 @@ exports.listProcesoPago = [
             return res.send(data);
         }
 
-        return res.render("instructions/list_procesopagos", {});
-
+        return res.render("instructions/list_procesopagos", { plants: req.plants });
     }]
+
+/* CREATE PROCESO DE PAGO */
+exports.createProcesoPago = [
+    function (req, res, next) {
+
+        var data = {
+            bank_account: req.body.bank_account,
+            notes: req.body.notes,
+            idCompany: req.body.idCompany,
+            created_at: new Date()
+        }
+
+        models.proceso_pagos.create(data).then(proceso => {
+            next();
+        });
+    },
+    function (req, res) {
+        return res.send("Proceso de Pago created!");
+    }
+]
 
 /* CREATE NOMINA PAGO */
 exports.createNominaPago = [
@@ -67,6 +99,9 @@ exports.createNominaPago = [
             dtes: req.list
         }
 
+        logger.log("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + req.body.list);
+        log["creation"].push("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + req.body.list);
+
         models.proceso_pagos.findOrCreate({ where: { id: req.id } })
             .spread((record, created) => {
                 // IF ALREADY EXISTS, I UPDATE THE DATA
@@ -76,6 +111,7 @@ exports.createNominaPago = [
                 } else {
                     record.updateAttributes(data);
                 }
+                req.proceso = record;
                 next();
             })
             .catch(function (error) {
@@ -94,6 +130,10 @@ exports.createNominaPago = [
 
         async.forEachOf(lists, function (value, key, callback) {
             models.instructions.findAll({ where: { id_cen: lists[key] }, limit: 1, include: [{ model: models.company, as: "creditor_info", include: [{ model: models.banks, as: "bank_info" }] }] }).then(instr => {
+                if (instr[0].id_cen === undefined) {
+                    logger.log("ERROR");
+                    return callback();
+                }
                 var dte = getDteById(req.dtes, instr[0].id_cen);
                 if (!dte) return callback();
 
@@ -126,36 +166,19 @@ exports.createNominaPago = [
     },
     function (req, res, next) {
         req.pathXls = path.join(global.appRoot, '/public/nomina_pagos/nominaPagos_' + moment().format('L').replace(new RegExp("/", "g"), '') + '.xls');
+        req.pathfile = '/public/nomina_pagos/';
+        req.filename = 'nominaPagos_' + moment().format('L').replace(new RegExp("/", "g"), '') + '.xls';
         var wb = XLSX.utils.book_new();
         var ws = XLSX.utils.json_to_sheet(req.toXls, { skipHeader: 1 });
         XLSX.utils.book_append_sheet(wb, ws, "No Header");
         XLSX.writeFile(wb, req.pathXls);
+        log["creation"].push("FILE EXCEL CREATED!");
         next();
     },
     function (req, res) {
-        return res.send("Nomina de pagos created!");
-    }
-]
-
-/* CREATE NOMINA PAGO */
-exports.createProcesoPago = [
-    function (req, res, next) {
-
-        req.bank_account = req.body.bank_account;
-        req.notes = req.body.notes;
-
-        var data = {
-            bank_account: req.body.bank_account,
-            notes: req.body.notes,
-            created_at: new Date()
-        }
-
-        models.proceso_pagos.create(data).then(proceso => {
-            next();
-        });
-    },
-    function (req, res) {
-        return res.send("Proceso de Pago created!");
+        logger.log("Nomina de pagos created!");
+        log["creation"].push("Nomina de pagos created!");
+        return res.send({ path: req.pathfile, filename: req.filename });
     }
 ]
 
@@ -165,6 +188,10 @@ exports.closeNominaPago = [
         req.id = req.body.id;
         req.closed_at = req.body.closed_at;
         req.notes = req.body.notes;
+
+        logger.log("START CLOSING NOMINA DE PAGO: " + req.body.id);
+        log["closing"].push("START CLOSING NOMINA DE PAGO: " + req.body.id);
+
         next();
     },
     function (req, res, next) {
@@ -195,10 +222,8 @@ exports.closeNominaPago = [
         var lists = req.proceso.dtes.split(",");
         var data = {};
 
-        asyncLoop(lists.length, function (loop) {
-            id = lists[loop.iteration()];
-
-            models.instructions.findAll({ where: { id_cen: id }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
+        async.forEachOfLimit(lists, 1, function (value, key, callback) {
+            models.instructions.findAll({ where: { id_cen: value }, limit: 1, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
                 req.instruction = instr[0];
 
                 data = {
@@ -212,26 +237,49 @@ exports.closeNominaPago = [
                 }
 
                 cen.postCreatePayment(data, function (err, result) {
-                    if (err) return loop.error(err);
-                    logger.log("Payment created and saved into CEN!");
-                    return loop.next();
+                    if (err) return callback(err);
+
+                    logger.log("Payment created " + req.instruction.id_cen + " and saved into CEN!");
+                    log["closing"].push("Payment created " + req.instruction.id_cen + " and saved into CEN!");
+
+                    return callback();
                 });
             });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
         });
     },
-    function (req, res, next) {
-
-    },
     function (req, res) {
-        return res.send("Nomina de pagos created!");
+        cen.refreshData({ filter: "DteD", id: parseInt(req.body.idCompany) }, function (err) {
+            if (err) {
+                logger.log(err);
+                log["closing"].push("Nomina de pagos created with some errors!");
+                return res.send({ err: { msg: err } });
+            }
+            cen.refreshData({ filter: "InstructionsD", id: parseInt(req.body.idCompany) }, function (err) {
+                if (err) {
+                    logger.log(err);
+                    log["closing"].push("Nomina de pagos created with some errors!");
+                    return res.send({ err: { msg: err } });
+                }
+                log["closing"].push("Nomina de pagos created");
+                return res.send({ res: "Nomina de pagos created" });
+            });
+        });
     }
 ]
 
 /* SHOW PROCESO PAGO */
 exports.showProcesoPago = [
     function (req, res, next) {
+
+        req.idProc = req.params.id;
+        req.idCompany = req.params.idCompany;
+
         req.filterProc = {};
-        req.filterProc["id"] = req.params.id;
+        req.filterProc["id"] = req.idProc;
+
         next();
     },
     getProcesosList,
@@ -239,13 +287,13 @@ exports.showProcesoPago = [
 
         req.filterInstrPay = {};
 
-        if (req.proceso.dtes) {
+        if (req.proceso[0].dtes) {
 
             req.filterInstrPay = {
                 $or: []
             }
 
-            var dtes = req.proceso.dtes.split(",");
+            var dtes = req.proceso[0].dtes.split(",");
             for (var i = 0; i < dtes.length; i++) {
                 dte = dtes[i];
                 req.filterInstrPay.$or.push([{
@@ -255,13 +303,26 @@ exports.showProcesoPago = [
 
         } else {
 
-            req.filterInstrPay['debtor'] = 339;
-            req.filterInstrPay['status_billed'] = {
-                $gte: 2
-            }
+            req.filterInstrPay['debtor'] = req.idCompany;
+
             req.filterInstrPay['status_paid'] = {
-                $gte: 1
+                $eq: 1
             }
+
+            req.filterInstrPay['$or'] =
+                [
+                    {
+                        "status_billed": {
+                            $gte: 2
+                        }
+                    },
+                    {
+                        "status_billed_2": {
+                            $gte: 2
+                        },
+                    }
+
+                ]
         }
         next();
     },
@@ -274,10 +335,12 @@ exports.showProcesoPago = [
             "0": "",
             "1": "id_cen",
             "2": "Creditor",
-            "3": "Amount Net",
-            "4": "Amount Gross",
-            "5": "DTE Number",
-            "6": "DTE Type"
+            "3": "Period",
+            "5": "Amount Net",
+            "5": "Amount Gross",
+            "6": "DTE Number",
+            "7": "DTE Type",
+            "8": "Debtor",
         };
 
         var rows = { data: [] };
@@ -289,17 +352,40 @@ exports.showProcesoPago = [
                 "",
                 instr.id_cen,
                 instr.creditor_info.name,
+                moment(instr.created_ts).format("Y-MM"),
                 instr.amount,
                 instr.amount_gross,
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
+                instr.debtor
             ]);
         }
 
-        return res.render("instructions/show_procesopagos", { proceso: req.proceso, data: rows.data, cols: cols });
+        return res.render("instructions/show_procesopagos", { proceso: req.proceso[0], data: rows.data, cols: cols });
 
     }];
 
+
+/* getBankAccount */
+exports.getBankAccount = function (req, res) {
+
+    models.bank_account.findAll({ where: { id_company: req.query.idCompany } }).then(bank_accounts => {
+        req.bank_accounts = bank_accounts;
+        return res.send(req.bank_accounts);
+    });
+
+}
+
+/* UPDATE LOG */
+exports.updateLog = function (req, res) {
+
+    if (req.body.log && log[req.body.log]) {
+        var msg = log[req.body.log].splice(0, 1);
+        return res.send(msg);
+    }
+
+    res.status(404).send('Log Not found');
+}
 
 function getDteById(dtes, id) {
 
@@ -340,12 +426,12 @@ function getProcesosList(req, res, next) {
 
     if (req.filterProc) {
         models.proceso_pagos.findAll({ where: req.filterProc }).then(procesos => {
-            req.proceso = procesos[0];
+            req.proceso = procesos;
             return next();
         })
     } else {
         models.proceso_pagos.findAll().then(procesos => {
-            req.procesos = procesos;
+            req.proceso = procesos;
             return next();
         })
     }
@@ -394,39 +480,11 @@ function getTypes(req, res, next) {
     });
 }
 
-function asyncLoop(iterations, func, callback) {
-    var index = 0;
-    var done = false;
-    var loop = {
-        next: function () {
-            if (done) {
-                return;
-            }
+function getPlants(req, res, next) {
 
-            if (index < iterations) {
-                index++;
-                func(loop);
+    models.plants.findAll().then(plants => {
+        req.plants = plants;
+        return next();
+    });
 
-            } else {
-                done = true;
-                callback();
-            }
-        },
-
-        error: function (err) {
-            done = true;
-            callback(err);
-        },
-
-        iteration: function () {
-            return index - 1;
-        },
-
-        break: function () {
-            done = true;
-            callback();
-        }
-    };
-    loop.next();
-    return loop;
 }

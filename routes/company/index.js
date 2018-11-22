@@ -10,5 +10,4 @@ router.get('/company/list', companyController.companyList);
 router.get('/company/show/:id', companyController.showCompany);
 
 
-
 module.exports = router;

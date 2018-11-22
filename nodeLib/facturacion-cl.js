@@ -34,7 +34,7 @@ class FacturacionCL {
         }, function (error, response, body) {
             if (error) {
                 logger.log('error:', error); // Print the error if one occurred
-                callback(error);
+                return callback(error);
             }
             callback(body.token);
         });
@@ -130,7 +130,7 @@ class FacturacionCL {
 
             facturacion_cl.loadInvoice(instruction, xmlEncoded64, "2", function (err, result) {
                 if (err) {
-                    logger.log("error");
+                    logger.log(err);
                     return callback(err, result);
                 }
                 callback(null, result);
@@ -149,6 +149,10 @@ class FacturacionCL {
         };
 
         soap.createClient(this.endpoint, options, function (err, client) {
+
+            if (err){
+                return callback(err, false);
+            }
 
             logger.log("Connected to " + facturacion_cl.endpoint);
 
@@ -181,7 +185,8 @@ class FacturacionCL {
                         urlCedible: Buffer.from(resultJs.WSPLANO.Detalle.Documento.urlCedible._text, 'base64').toString('ascii'),
                         urlOriginal: Buffer.from(resultJs.WSPLANO.Detalle.Documento.urlOriginal._text, 'base64').toString('ascii'),
                         xml: Buffer.from(xml, 'base64').toString('ascii'),
-                        created_at: new Date(resultJs.WSPLANO.Detalle.Documento.Fecha._text)
+                        created_at: new Date(resultJs.WSPLANO.Detalle.Documento.Fecha._text),
+                        reported_by_creditor: true
                     }
                 } else {
                     var data = {
@@ -193,7 +198,8 @@ class FacturacionCL {
                         type: parseInt(resultJs.WSPLANO.Detalle.Documento.TipoDte._text),
                         operation: resultJs.WSPLANO.Detalle.Documento.Operacion._text,
                         xml: Buffer.from(xml, 'base64').toString('ascii'),
-                        created_at: new Date(resultJs.WSPLANO.Detalle.Documento.Fecha._text)
+                        created_at: new Date(resultJs.WSPLANO.Detalle.Documento.Fecha._text),
+                        reported_by_creditor: true
                     }
                 }
 

@@ -7,7 +7,7 @@ block sub-header
         li(class="nav-item")
             a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) PURCHASES
         li(class="nav-item")
-            a(class="nav-link", href="/instructions/listProcesoPago/") PAYMENT PROCESS
+            a(class="nav-link", href="/instructions/listProcesoPago/?id=" + idCompany) PAYMENT PROCESS
 
 block append scripts
   script(src="/javascripts/list_instructions.js")
@@ -37,11 +37,8 @@ block content
                     option(value=index)=month
 
         a(class="btn btn-backend m-3" id="setAsInvoiced" ) Set as Invoiced
-        a(class="btn btn-backend m-3" id="setAsInvoicedDelayed" ) Set as Invoiced Delayed
-
-        a(class="btn btn-backend m-3" id="setAsAccepted" ) Set as Accepted
-        a(class="btn btn-backend m-3" id="setAsRejected" ) Set as Rejected
-        i(class="fas fa-sync-alt fa-spin fa-1x fa-fw" id="onAcceptRejectInvoice" style="visibility: hidden")
+        a(class="btn btn-backend m-3" id="save" style="display: none" ) Save
+        a(class="btn btn-backend m-3" id="cancel" style="display: none" ) Cancel
         
     .col-sm#listinstructionsD-container
         table.table.table-hover.mt-5(data-title='LIST OF PURCHASES INVOICE')
@@ -61,6 +58,5 @@ block content
                     th.folio DTE Number
                     th.type_dte DTE Type
                     th.urlDTE URL DTE
-                    th.accept_dt DTE Acceptance Date
                     th.accept_st DTE Acceptance Status
-                    
+                    th.accept_dt DTE Acceptance Date

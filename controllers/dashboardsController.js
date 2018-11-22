@@ -28,6 +28,129 @@ const operatorsAliases = {
 * 
 */
 
+/* productionDashboard */
+exports.productionDashboard = [
+    function (req, res, next) {
+        req.year = req.query.year;
+        req.idCompany = req.query.id;
+        req.firstDay = new Date(req.year, 01, 01);
+        req.lastDay = new Date(req.year, 12, 31);
+
+        req.venta = new Array(13).fill(0);
+        req.venta.splice(0, 1);
+        req.compra = new Array(13).fill(0);
+        req.compra.splice(0, 1);
+
+        req.plantsFilterC = {
+            $or: []
+        }
+
+        req.plantsFilterD = {
+            $or: []
+        }
+
+        next();
+    },
+    getPlants,
+    function (req, res, next) {
+        req.plantsFilterC.$or.push({ "creditor": req.idCompany });
+        req.plantsFilterD.$or.push({ "debtor": req.idCompany });
+        next();
+    },
+    function (req, res, next) {
+        //compra
+        req.filter = {};
+        req.filter['created_ts'] = {
+            $between: [req.firstDay, req.lastDay]
+        }
+        req.filter['$or'] = req.plantsFilterD.$or;
+
+        models.instructions.findAll({
+            attributes: [
+                [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
+                [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
+                [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
+            ],
+            where: req.filter,
+            group: [
+                [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
+                [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
+            ],
+            order: [['created_ts', 'ASC']]
+        }).then(instr => {
+            async.forEachOf(instr, function (value, key, callback) {
+                req.compra[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                return callback();
+            }, function (err) {
+                next();
+            });
+        });
+    },
+    function (req, res, next) {
+        //venta
+        req.filter = {};
+        req.filter['created_ts'] = {
+            $between: [req.firstDay, req.lastDay]
+        }
+
+        req.filter['$or'] = req.plantsFilterC.$or;
+
+        models.instructions.findAll({
+            attributes: [
+                [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
+                [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
+                [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
+            ],
+            where: req.filter,
+            group: [
+                [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
+                [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
+            ],
+            order: [['created_ts', 'ASC']]
+        }).then(instr => {
+            async.forEachOf(instr, function (value, key, callback) {
+                req.venta[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                return callback();
+            }, function (err) {
+                next();
+            });
+        });
+
+    },
+    getPlants,
+    function (req, res) {
+
+        var data = { data: [] };
+
+        req.months = {};
+        req.months[1] = "January";
+        req.months[2] = "February";
+        req.months[3] = "March";
+        req.months[4] = "April";
+        req.months[5] = "May";
+        req.months[6] = "June";
+        req.months[7] = "July";
+        req.months[8] = "August";
+        req.months[9] = "September";
+        req.months[10] = "October";
+        req.months[11] = "November";
+        req.months[12] = "December";
+
+        for (var i = 0; i < req.compra.length; i++) {
+            data.data.push([
+                req.months[i + 1],
+                req.compra[i],
+                req.venta[i]
+            ]);
+        }
+
+        if (req.xhr) {
+            return res.send(data);
+        }
+
+        return res.render("dashboards/dashboard2", { plants: req.plants });
+    }]
+
 /* mainDashboard */
 exports.mainDashboard = [
     function (req, res, next) {
@@ -55,7 +178,7 @@ exports.mainDashboard = [
         async.forEachOf(req.plants, function (value, key, callback) {
             req.plantsFilterC.$or.push({ "creditor": value.company_cen_id });
             req.plantsFilterD.$or.push({ "debtor": value.company_cen_id });
-            callback();
+            return callback();
         }, function (err) {
             next();
         });
@@ -88,7 +211,7 @@ exports.mainDashboard = [
         async.forEachOf(req.instrVenta, function (value, key, callback) {
             if (value.status_billed === 1) req.nInvS = req.nInvS + 1;
             if (value.status_billed >= 2 && value.status_paid === 1) req.nPayS = req.nPayS + 1;
-            callback();
+            return callback();
         }, function (err) {
             next();
         });
@@ -97,14 +220,14 @@ exports.mainDashboard = [
         async.forEachOf(req.instrCompra, function (value, key, callback) {
             if (value.status_billed === 1) req.nInvP = req.nInvP + 1;
             if (value.status_billed >= 2 && value.status_paid === 1) req.nPayP = req.nPayP + 1;
-            callback();
+            return callback();
         }, function (err) {
             next();
         });
     },
     getPlants,
     function (req, res) {
-        return res.render("dashboards/dashboard", { plants: req.plants, statistics: { salesPI: req.nInvS, purchasesPI: req.nInvP, salesPP: req.nPayS, purchasesPP: req.nPayP } });
+        return res.render("dashboards/dashboard1", { plants: req.plants, statistics: { salesPI: req.nInvS, purchasesPI: req.nInvP, salesPP: req.nPayS, purchasesPP: req.nPayP } });
     }]
 
 /* getDataMoney */
@@ -135,7 +258,7 @@ exports.getDataMoney = [
         async.forEachOf(req.plants, function (value, key, callback) {
             req.plantsFilterC.$or.push({ "creditor": value.company_cen_id });
             req.plantsFilterD.$or.push({ "debtor": value.company_cen_id });
-            callback();
+            return callback();
         }, function (err) {
             next();
         });
@@ -163,7 +286,7 @@ exports.getDataMoney = [
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
                 req.venta[value.dataValues.month] = parseFloat(value.dataValues.amount);
-                callback();
+                return callback();
             }, function (err) {
                 next();
             });
@@ -193,7 +316,7 @@ exports.getDataMoney = [
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
                 req.compra[value.dataValues.month] = parseFloat(value.dataValues.amount);
-                callback();
+                return callback();
             }, function (err) {
                 next();
             });
@@ -203,8 +326,6 @@ exports.getDataMoney = [
     function (req, res, next) {
         res.send({ compra: req.compra, venta: req.venta });
     }]
-
-
 
 /* getDataEnergy */
 exports.getDataEnergy = [
@@ -233,7 +354,7 @@ exports.getDataEnergy = [
 
         async.forEachOf(req.plants, function (value, key, callback) {
             req.series.push({ name: value.name, plant_id: value.plant_id, item_id: value.item_id, data: new Array(req.nSamples).fill(null) });
-            callback();
+            return callback();
         }, function (err) {
             next();
         });
@@ -268,9 +389,9 @@ exports.getDataEnergy = [
                     var timeDiff = Math.abs(value.dataValues.timestamp.getTime() - req.from.getTime());
                     var nSample = Math.ceil(timeDiff / (3600 * 1000));
                     serie.data[nSample] = value.dataValues.max - value.dataValues.min;
-                    callback();
+                    return callback();
                 }, function (err) {
-                    callback();
+                    return callback();
                 });
             });
         }, function (err) {
@@ -282,10 +403,171 @@ exports.getDataEnergy = [
         res.send(req.series)
     }]
 
+
+/* getDataSAP */
+exports.getDataSAP = [
+    function (req, res, next) {
+
+        if (!req.query.id) {
+            req.id = parseInt(app.locals.idCompany);
+        } else {
+            req.id = parseInt(req.query.id);
+        }
+
+        if (req.query.month === undefined && req.query.year === undefined) {
+            var date = new Date();
+            req.month = date.getMonth();
+            req.year = date.getFullYear();
+        } else {
+            req.month = parseInt(req.query.month);
+            req.year = parseInt(req.query.year);
+        }
+
+        req.dateFrom = new Date(req.year, req.month - 1, 1);
+        req.dateTo = new Date(req.year, req.month, 0);
+
+        req.filter = {};
+        req.filter['creditor'] = req.id;
+        req.filter['created_ts'] = {
+            $between: [req.dateFrom, req.dateTo]
+        }
+        next();
+    },
+    getInstructionsList,
+    getDteList,
+    getPlants,
+    getPlantById,
+    function (req, res) {
+
+        var data = { data: [] };
+
+        for (var i = 0; i < req.instructions.length; i++) {
+            var ingr = req.instructions[i];
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            if (dte) {
+                data.data.push([
+                    "1-1-1-03-09",
+                    ingr.amount_gross,
+                    "",
+                    req.code_plant.company_cen_name + " FV" + dte.folio,
+                    ingr.debtor_info.rut,
+                    "FV",
+                    dte.folio,
+                    dte.emission_dt,
+                    dte.emission_dt,
+                    "FV",
+                    dte.folio,
+                    ingr.amount,
+                    ingr.amount_gross - ingr.amount,
+                    ingr.amount_gross
+                ]);
+            }
+        }
+
+        for (var i = 0; i < req.instructions.length; i++) {
+            var ingr = req.instructions[i];
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            if (dte) {
+                data.data.push([
+                    "2-1-1-05-01",
+                    "",
+                    ingr.amount_gross - ingr.amount,
+                    "PARRONAL FV" + dte.folio,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+                ]);
+            }
+        }
+
+        if (req.xhr) {
+            return res.send(data);
+        }
+
+        req.months = {};
+        req.months[1] = "January";
+        req.months[2] = "February";
+        req.months[3] = "March";
+        req.months[4] = "April";
+        req.months[5] = "May";
+        req.months[6] = "June";
+        req.months[7] = "July";
+        req.months[8] = "August";
+        req.months[9] = "September";
+        req.months[10] = "October";
+        req.months[11] = "November";
+        req.months[12] = "December";
+
+        return res.render("dashboards/dashboard3", { months: req.months, plants: req.plants });
+
+    }]
+
 function getPlants(req, res, next) {
 
     models.plants.findAll().then(plants => {
         req.plants = plants;
+        return next();
+    });
+
+}
+
+
+function getInstructionsList(req, res, next) {
+
+    if (req.filterInstrPay) {
+        models.instructions.findAll({ where: req.filterInstrPay, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instructions => {
+            req.instructions = instructions;
+            return next();
+        })
+    } else {
+        models.instructions.findAll({ where: req.filter, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instructions => {
+            req.instructions = instructions;
+            return next();
+        })
+    }
+
+
+}
+
+function getDteList(req, res, next) {
+
+    models.dte.findAll().then(dtes => {
+        req.dtes = dtes;
+        return next();
+    });
+
+}
+
+function getPlants(req, res, next) {
+
+    models.plants.findAll().then(plants => {
+        req.plants = plants;
+        return next();
+    });
+
+}
+
+
+function getDteById(dtes, id) {
+
+    for (var i = 0; i < dtes.length; i++) {
+        var dte = dtes[i];
+        if (dte.instruction === id) return dte;
+    }
+
+}
+
+function getPlantById(req, res, next) {
+
+    models.plants.findAll({ where: { company_cen_id: req.id } }).then(plant => {
+        req.code_plant = plant[0];
         return next();
     });
 

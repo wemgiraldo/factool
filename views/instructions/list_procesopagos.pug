@@ -5,20 +5,29 @@ block sub-header
     div.collapse.navbar-collapse(id="navbarSupportedContent")
       ul(class="navbar-nav mr-auto")
         li(class="nav-item")
-            a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) BACK
+            a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) PURCHASES
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/listProcesoPago/?id=" + idCompany) PAYMENT PROCESS
         
 block append scripts
   script(src="/javascripts/list_procesopago.js")
 
 block content
 
-    a(class="btn btn-backend m-3" id="createProcesoPago" ) Create Payment Process
+    form.form-inline
+        select#idCompany.ml-3.mr-3.form-control
+            each plant in plants
+                option(value=plant.company_cen_id)=plant.company_cen_id + " - " + plant.company_cen_name
 
+        a(class="btn btn-backend m-3" id="createProcesoPago" ) Create Payment Process
+
+    
     .col-sm#listprocesoPago-container
         table.table.table-hover.mt-5(data-title='NOMINA DE PAGOS')
             thead
                 tr
                     th.id ID
+                    th.idCompany Company ID
                     th.bank_account Bank Account
                     th.notes Notes
                     th.created_at Opening Date

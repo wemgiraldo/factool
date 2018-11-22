@@ -29,12 +29,15 @@ block content
                 else
                     option(value=index)=month
 
-        
-        a(class="btn btn-backend m-3" id="setAsPaid" ) Set as Paid
-        a(class="btn btn-backend m-3" id="setAsPaidAtrasado" ) Set as Paid Atrasado
+
         
         a(class="btn btn-backend m-3" id="createInvoice" ) Create Invoices
-        i(class="fas fa-sync-alt fa-spin fa-1x fa-fw" id="onCreateInvoice" style="visibility: hidden")
+        
+        a(class="btn btn-backend m-3" id="setAsPaid" ) Set as Paid
+        
+
+        a(class="btn btn-backend m-3" id="save" style="display: none" ) Save
+        a(class="btn btn-backend m-3" id="cancel" style="display: none" ) Cancel
         
     .col-sm#listinstructionsC-container
         table.table.table-hover.mt-5(data-title='LIST OF SALES INVOICE')
@@ -51,9 +54,9 @@ block content
                     th.status_bill Status Billed
                     th.status_paid Status Paid
                     th.status_paid2 Status Paid 2
-                    th.paid_ts Payment Date
                     th.folio DTE Number
                     th.type_dte DTE Type
                     th.urlDTE URL DTE
-                    th.accept_dt DTE Acceptance Date
                     th.accept_st DTE Acceptance Status
+                    th.accept_dt DTE Acceptance Date
+                    th.paid_ts Payment Date

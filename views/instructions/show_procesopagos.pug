@@ -8,9 +8,8 @@ block append scripts
 block content
 
   a(class="btn btn-backend m-3" id="createNominaPago" ) Create Payment
-  if proceso.closed_at === null
-    a(class="btn btn-backend m-3" id="closeNominaPago" ) Close Payment
-
+  //if proceso.closed_at === null
+  a(class="btn btn-backend m-3" id="closeNominaPago" ) Close Payment
 
   .row
     .col-sm#listprocesoPago-container(data-idCompany=idCompany)

@@ -34,8 +34,7 @@ class HigecoPortalDriver {
             }
         }, function (error, response, body) {
             if (error) {
-                console.log('error:', error); // Print the error if one occurred
-                callback(error, false);
+                return callback(error, null);
             }
             return callback(null, body.token);
         });
@@ -49,8 +48,8 @@ class HigecoPortalDriver {
             },
             url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.getTime() / 1000 + "&to=" + data.to.getTime() / 1000
         }, function (err, res, body) {
-            if (res.statusCode !== 200) return callback(res.statusMessage, false)
-            if (err) return callback(err, false)
+            if (err) return callback(err, null)
+            if (res.statusCode !== 200) return callback(res.statusMessage, null)
             var result = JSON.parse(body);
             var path = res.request.path.split("/");
             result['plant_id'] = path[4];
@@ -69,8 +68,8 @@ class HigecoPortalDriver {
         models.plants.findAll().then(plants => {
 
             async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: new Date(2018, 9, 30), to: new Date(2018, 10, 1) }, function () {
-                    callback();
+                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 1), to: new Date(2018, 10, 20) }, function () {
+                    return callback();
                 });
             }, function (err) {
                 if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
@@ -119,10 +118,10 @@ function updateMeasurements(higeco_driver, filter, callback) {
                 models.measurements.findOrCreate({ where: { timestamp: data.timestamp, plant_id: plant_id, item_id: data.item_id } })
                     .spread((record, created) => {
                         record.updateAttributes(data);
-                        callback();
+                        return callback();
                     })
                     .catch(function (error) {
-                        callback(error);
+                        return callback(error);
                     });
 
             }, function (err) {
