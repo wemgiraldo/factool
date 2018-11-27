@@ -40,7 +40,7 @@ $(document).ready(function () {
     });
 
     //get DataTable table object
-    var table = $("#listSAP1-container table").dataTable({
+    var table = $("#listSAP2-container table").dataTable({
         "columnDefs": [
             {
                 "targets": "amount_in",
@@ -93,7 +93,7 @@ $(document).ready(function () {
 
         },
         "ajax": {
-            "url": "/dashboards/3/",
+            "url": "/dashboards/4/",
             "type": "GET",
             "data": function (d) {
                 d.id = idCompany;

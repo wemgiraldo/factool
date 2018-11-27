@@ -79,7 +79,7 @@ exports.productionDashboard = [
             order: [['created_ts', 'ASC']]
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
-                req.compra[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                req.compra[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
                 return callback();
             }, function (err) {
                 next();
@@ -109,7 +109,7 @@ exports.productionDashboard = [
             order: [['created_ts', 'ASC']]
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
-                req.venta[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                req.venta[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
                 return callback();
             }, function (err) {
                 next();
@@ -285,7 +285,7 @@ exports.getDataMoney = [
             order: [['created_ts', 'ASC']]
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
-                req.venta[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                req.compra[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
                 return callback();
             }, function (err) {
                 next();
@@ -315,7 +315,7 @@ exports.getDataMoney = [
             order: [['created_ts', 'ASC']]
         }).then(instr => {
             async.forEachOf(instr, function (value, key, callback) {
-                req.compra[value.dataValues.month] = parseFloat(value.dataValues.amount);
+                req.venta[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
                 return callback();
             }, function (err) {
                 next();
@@ -403,9 +403,8 @@ exports.getDataEnergy = [
         res.send(req.series)
     }]
 
-
-/* getDataSAP */
-exports.getDataSAP = [
+/* getDataSapPayments */
+exports.getDataSapPayments = [
     function (req, res, next) {
 
         if (!req.query.id) {
@@ -447,6 +446,89 @@ exports.getDataSAP = [
             if (dte) {
                 data.data.push([
                     "1-1-1-03-09",
+                    "",
+                    ingr.amount_gross,
+                    req.code_plant.company_cen_name + " FV" + dte.folio,
+                    ingr.debtor_info.rut,
+                    "AB",
+                    dte.folio,
+                    dte.emission_dt,
+                    dte.emission_dt,
+                    "FV",
+                    dte.folio,
+                    ingr.amount,
+                    ingr.amount_gross - ingr.amount,
+                    ingr.amount_gross
+                ]);
+            }
+        }
+
+        if (req.xhr) {
+            return res.send(data);
+        }
+
+        req.months = {};
+        req.months[1] = "January";
+        req.months[2] = "February";
+        req.months[3] = "March";
+        req.months[4] = "April";
+        req.months[5] = "May";
+        req.months[6] = "June";
+        req.months[7] = "July";
+        req.months[8] = "August";
+        req.months[9] = "September";
+        req.months[10] = "October";
+        req.months[11] = "November";
+        req.months[12] = "December";
+
+        return res.render("dashboards/dashboard4", { months: req.months, plants: req.plants });
+
+    }]
+
+/* getDataSapSales */
+exports.getDataSapSales = [
+    function (req, res, next) {
+
+        if (!req.query.id) {
+            req.id = parseInt(app.locals.idCompany);
+        } else {
+            req.id = parseInt(req.query.id);
+        }
+
+        if (req.query.month === undefined && req.query.year === undefined) {
+            var date = new Date();
+            req.month = date.getMonth();
+            req.year = date.getFullYear();
+        } else {
+            req.month = parseInt(req.query.month);
+            req.year = parseInt(req.query.year);
+        }
+
+        req.dateFrom = new Date(req.year, req.month - 1, 1);
+        req.dateTo = new Date(req.year, req.month, 0);
+
+        req.filter = {};
+        req.filter['creditor'] = req.id;
+        req.filter['created_ts'] = {
+            $between: [req.dateFrom, req.dateTo]
+        }
+        next();
+    },
+    getInstructionsList,
+    getDteList,
+    getPlants,
+    getPlantById,
+    function (req, res) {
+
+        var data = { data: [] };
+
+        // BRUTO
+        for (var i = 0; i < req.instructions.length; i++) {
+            var ingr = req.instructions[i];
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            if (dte) {
+                data.data.push([
+                    "1-1-1-03-09",
                     ingr.amount_gross,
                     "",
                     req.code_plant.company_cen_name + " FV" + dte.folio,
@@ -464,6 +546,7 @@ exports.getDataSAP = [
             }
         }
 
+        // IVA 
         for (var i = 0; i < req.instructions.length; i++) {
             var ingr = req.instructions[i];
             var dte = getDteById(req.dtes, ingr.id_cen);
@@ -472,7 +555,31 @@ exports.getDataSAP = [
                     "2-1-1-05-01",
                     "",
                     ingr.amount_gross - ingr.amount,
-                    "PARRONAL FV" + dte.folio,
+                    req.code_plant.company_cen_name + " FV" + dte.folio,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+                ]);
+            }
+        }
+
+        // NETO
+        for (var i = 0; i < req.instructions.length; i++) {
+            var ingr = req.instructions[i];
+            var dte = getDteById(req.dtes, ingr.id_cen);
+            if (dte) {
+                data.data.push([
+                    "4-1-1-01-01",
+                    "",
+                    ingr.amount,
+                    req.code_plant.company_cen_name + " FV" + dte.folio,
                     "",
                     "",
                     "",
@@ -508,6 +615,7 @@ exports.getDataSAP = [
         return res.render("dashboards/dashboard3", { months: req.months, plants: req.plants });
 
     }]
+
 
 function getPlants(req, res, next) {
 
