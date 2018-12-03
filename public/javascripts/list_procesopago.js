@@ -18,7 +18,26 @@ $(document).ready(function () {
     //get DataTable table object
     var table = $("#listprocesoPago-container table").dataTable({
         "columnDefs": [
-
+            {
+                "targets": "created_at",
+                "render": function (data, type, row) {
+                    if (data) {
+                        return moment(data).format("YYYY-MM-DD hh:mm:ss");
+                    } else {
+                        return "";
+                    }
+                },
+            },
+            {
+                "targets": "closed_at",
+                "render": function (data, type, row) {
+                    if (data) {
+                        return moment(data).format("YYYY-MM-DD hh:mm:ss");
+                    } else {
+                        return "";
+                    }
+                },
+            }
         ],
         buttons: [
             {

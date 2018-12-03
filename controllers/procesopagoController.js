@@ -99,13 +99,24 @@ exports.createNominaPago = [
             dtes: req.list
         }
 
-        logger.log("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + req.body.list);
-        log["creation"].push("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + req.body.list);
-
         models.proceso_pagos.findOrCreate({ where: { id: req.id } })
             .spread((record, created) => {
                 // IF ALREADY EXISTS, I UPDATE THE DATA
                 // ELSE I CREATE THE RECORD AND ADD THE NEW DATA
+
+                if (req.body.list === "") {
+                    if (record.dtes === "") {
+                        data.dtes = "";
+                    } else {
+                        data.dtes = record.dtes;
+                    }
+                }
+
+
+                logger.log("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + data.dtes);
+                log["creation"].push("START CREATION NOMINA DE PAGO: " + req.body.id + " INSTRUCTIONES: " + data.dtes);
+
+
                 if (!created) {
                     record.updateAttributes(data);
                 } else {
@@ -124,7 +135,11 @@ exports.createNominaPago = [
         req.toXls = [];
 
         if (req.body.list === "") {
-            next();
+            if (req.proceso.dtes === "") {
+                next();
+            } else {
+                req.body.list = req.proceso.dtes;
+            }
         }
         var lists = req.body.list.split(",");
 

@@ -382,11 +382,12 @@ $(document).ready(function () {
 
     //update data
     setInterval(function () {
-        if (table1.length > 0) {
+
+        if (table1.length > 0 && !table1.hasClass("editing")) {
             table1.api().ajax.reload(null, false);
         }
 
-        if (table2.length > 0) {
+        if (table2.length > 0 && !table2.hasClass("editing")) {
             table2.api().ajax.reload(null, false);
         }
 
@@ -474,7 +475,7 @@ $(document).ready(function () {
         table.$("input[type='checkbox']:checked").each(function () {
             var row = this.parentElement.parentElement;
             var data = table.row(row).data();
-            $('#listinstructionsD-container').addClass("editing");
+            $('#listinstructionsD-container table').addClass("editing");
             var $row = $(row);
 
             var thisInvoiced = $row.find("td:nth-child(7)");
@@ -558,109 +559,131 @@ $(document).ready(function () {
                 return options;
             }));
 
+            var thisAcptDate = $row.find("td:nth-child(12)");
+            thisAcptDate.empty().append($("<input></input>", {
+                "id": "acptDate_" + data[1],
+                "class": "setacptDate form-control",
+                "type": "text",
+                "value": new moment().format("YYYY-MM-DD"),
+                "width": "115"
+            }));
+
             var saveFolio = document.getElementById('save');
             saveFolio.style.display = 'inline';
             var cancelFolio = document.getElementById('cancel');
             cancelFolio.style.display = 'inline';
+        });
 
-            $('#cancel').click(function () {
-                window.location = window.location;
+        $('#cancel').click(function () {
+            window.location = window.location;
+        });
+
+        $('#save').click(function () {
+            var table = $('#listinstructionsD-container table').DataTable();
+
+            $('#listinstructionsD-container table').removeClass("editing");
+
+            var list = [];
+            table.$("input[type='checkbox']:checked").each(function () {
+                list.push(this.name);
             });
 
-            $('#save').click(function () {
-                var table = $('#listinstructionsD-container table').DataTable();
+            var invoiced_st = [];
+            var err = 0;
 
-                $('#listinstructionsD-container').removeClass("editing");
+            table.$("select[class='setInvoiced form-control']").each(function () {
+                if (this.value) {
+                    invoiced_st.push(parseInt(this.value) + 2);
+                } else {
+                    err = 1;
+                }
+            });
 
-                var list = [];
-                table.$("input[type='checkbox']:checked").each(function () {
-                    list.push(this.name);
+            if (err === 1) return alert("ERROR NO STATUS DTE INSERTED");
+
+            var folio = [];
+            var err = 0;
+
+            table.$("input[class='setFolioDTE form-control']").each(function () {
+                if (this.value) {
+                    folio.push(this.value);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO DTE NUMBER INSERTED");
+
+            var type = [];
+            var err = 0;
+
+            table.$("select[class='setTypeDTE form-control']").each(function () {
+                if (this.value) {
+                    type.push(this.value);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO TYPE DTE INSERTED");
+
+            var accept_st = [];
+            var err = 0;
+
+            table.$("select[class='setStatusDTE form-control']").each(function () {
+                if (this.value) {
+                    accept_st.push(this.value);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO STATUS DTE INSERTED");
+
+            var accept_date = [];
+            var err = 0;
+
+            table.$("input[class='setacptDate form-control']").each(function () {
+                if (this.value) {
+                    accept_date.push(this.value);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO ACCEPTANCE DATE INSERTED");
+
+            updateLogSetAsInvoiced();
+            var intervalId = setInterval(updateLogSetAsInvoiced, 3000);
+
+            $.post("/instructions/setAsInvoiced/", { list: list.join(","), invoiced_st: invoiced_st.join(","), folio: folio.join(","), type: type.join(","), accept_st: accept_st.join(","), accept_date: accept_date.join(","), idCompany: idCompany }, function (result) {
+
+                var close = document.getElementById('closeLog');
+                close.style.display = 'inline';
+
+                var loadingProcess = document.getElementById('loadingProcess');
+                loadingProcess.style.display = 'none';
+
+                if (table1.length > 0) {
+                    table1.api().ajax.reload(null, false);
+                }
+
+                if (table2.length > 0) {
+                    table2.api().ajax.reload(null, false);
+                }
+
+                $("#closeLog").click(function () {
+                    clearTimeout(intervalId);
+                    $("#process-log-container").remove();
+                    var saveFolio = document.getElementById('save');
+                    saveFolio.style.display = 'none';
+                    var cancelFolio = document.getElementById('cancel');
+                    cancelFolio.style.display = 'none';
                 });
-
-                var invoiced_st = [];
-                var err = 0;
-
-                table.$("select[class='setInvoiced form-control']").each(function () {
-                    if (this.value) {
-                        invoiced_st.push(parseInt(this.value) + 2);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO STATUS DTE INSERTED");
-
-                var folio = [];
-                var err = 0;
-
-                table.$("input[class='setFolioDTE form-control']").each(function () {
-                    if (this.value) {
-                        folio.push(this.value);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO DTE NUMBER INSERTED");
-
-                var type = [];
-                var err = 0;
-
-                table.$("select[class='setTypeDTE form-control']").each(function () {
-                    if (this.value) {
-                        type.push(this.value);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO TYPE DTE INSERTED");
-
-                var accept_st = [];
-                var err = 0;
-
-                table.$("select[class='setStatusDTE form-control']").each(function () {
-                    if (this.value) {
-                        accept_st.push(this.value);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO STATUS DTE INSERTED");
-
-                updateLogSetAsInvoiced();
-                var intervalId = setInterval(updateLogSetAsInvoiced, 3000);
-
-                $.post("/instructions/setAsInvoiced/", { list: list.join(","), invoiced_st: invoiced_st.join(","), folio: folio.join(","), type: type.join(","), accept_st: accept_st.join(","), idCompany: idCompany }, function (result) {
-
-                    var close = document.getElementById('closeLog');
-                    close.style.display = 'inline';
-
-                    var loadingProcess = document.getElementById('loadingProcess');
-                    loadingProcess.style.display = 'none';
-
-                    if (table1.length > 0) {
-                        table1.api().ajax.reload(null, false);
-                    }
-
-                    if (table2.length > 0) {
-                        table2.api().ajax.reload(null, false);
-                    }
-
-                    $("#closeLog").click(function () {
-                        clearTimeout(intervalId);
-                        $("#process-log-container").remove();
-                        var saveFolio = document.getElementById('save');
-                        saveFolio.style.display = 'none';
-                        var cancelFolio = document.getElementById('cancel');
-                        cancelFolio.style.display = 'none';
-                    });
-                });
-
             });
 
         });
+
     });
 
     $('#setAsPaid').click(function () {
@@ -675,7 +698,7 @@ $(document).ready(function () {
         table.$("input[type='checkbox']:checked").each(function () {
             var row = this.parentElement.parentElement;
             var data = table.row(row).data();
-            $('#listinstructionsC-container').addClass("editing");
+            $('#listinstructionsC-container table').addClass("editing");
             var $row = $(row);
 
             var thisPay = $row.find("td:nth-child(8)");
@@ -721,146 +744,81 @@ $(document).ready(function () {
             savePaid.style.display = 'inline';
             var cancelPaid = document.getElementById('cancel');
             cancelPaid.style.display = 'inline';
-
-            $('#cancel').click(function () {
-                window.location = window.location;
-            });
-
-            $('#save').click(function () {
-                var table = $('#listinstructionsC-container table').DataTable();
-
-                $('#listinstructionsC-container').removeClass("editing");
-
-                var list = [];
-                table.$("input[type='checkbox']:checked").each(function () {
-                    list.push(this.name);
-                });
-
-                var pay = [];
-                var err = 0;
-
-                table.$("select[class='setPay form-control']").each(function () {
-                    if (this.value) {
-                        pay.push(parseInt(this.value) + 1);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO SET PAY INSERTED");
-
-                var payDate = [];
-                var err = 0;
-
-                table.$("input[class='setPayDate form-control']").each(function () {
-                    if (this.value) {
-                        payDate.push(this.value);
-                    } else {
-                        err = 1;
-                    }
-                });
-
-                if (err === 1) return alert("ERROR NO DATE INSERTED");
-
-                updateLogSetAsPaid();
-                var intervalId = setInterval(updateLogSetAsPaid, 3000);
-
-                $.post("/instructions/setAsPaid/", { list: list.join(","), pay: pay.join(","), payDate: payDate.join(","), idCompany: idCompany }, function (result) {
-
-                    var close = document.getElementById('closeLog');
-                    close.style.display = 'inline';
-
-                    var loadingProcess = document.getElementById('loadingProcess');
-                    loadingProcess.style.display = 'none';
-
-                    if (table1.length > 0) {
-                        table1.api().ajax.reload(null, false);
-                    }
-
-                    if (table2.length > 0) {
-                        table2.api().ajax.reload(null, false);
-                    }
-
-                    $("#closeLog").click(function () {
-                        clearTimeout(intervalId);
-                        $("#process-log-container").remove();
-                        var saveFolio = document.getElementById('save');
-                        saveFolio.style.display = 'none';
-                        var cancelFolio = document.getElementById('cancel');
-                        cancelFolio.style.display = 'none';
-                    });
-                });
-
-            });
         });
+
+        $('#cancel').click(function () {
+            window.location = window.location;
+        });
+
+        $('#save').click(function () {
+            var table = $('#listinstructionsC-container table').DataTable();
+
+            $('#listinstructionsC-container table').removeClass("editing");
+
+            var list = [];
+            table.$("input[type='checkbox']:checked").each(function () {
+                list.push(this.name);
+            });
+
+            var pay = [];
+            var err = 0;
+
+            table.$("select[class='setPay form-control']").each(function () {
+                if (this.value) {
+                    pay.push(parseInt(this.value) + 1);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO SET PAY INSERTED");
+
+            var payDate = [];
+            var err = 0;
+
+            table.$("input[class='setPayDate form-control']").each(function () {
+                if (this.value) {
+                    payDate.push(this.value);
+                } else {
+                    err = 1;
+                }
+            });
+
+            if (err === 1) return alert("ERROR NO DATE INSERTED");
+
+            updateLogSetAsPaid();
+            var intervalId = setInterval(updateLogSetAsPaid, 3000);
+
+            $.post("/instructions/setAsPaid/", { list: list.join(","), pay: pay.join(","), payDate: payDate.join(","), idCompany: idCompany }, function (result) {
+
+                var close = document.getElementById('closeLog');
+                close.style.display = 'inline';
+
+                var loadingProcess = document.getElementById('loadingProcess');
+                loadingProcess.style.display = 'none';
+
+                if (table1.length > 0) {
+                    table1.api().ajax.reload(null, false);
+                }
+
+                if (table2.length > 0) {
+                    table2.api().ajax.reload(null, false);
+                }
+
+                $("#closeLog").click(function () {
+                    clearTimeout(intervalId);
+                    $("#process-log-container").remove();
+                    var saveFolio = document.getElementById('save');
+                    saveFolio.style.display = 'none';
+                    var cancelFolio = document.getElementById('cancel');
+                    cancelFolio.style.display = 'none';
+                });
+            });
+
+        });
+
     });
 
-    /*
-    $('#setAsPaid').click(function () {
-        var table = $('#listinstructionsC-container table').DataTable();
-        var list = [];
-        table.$("input[type='checkbox']:checked").each(function () {
-            list.push(this.name);
-        });
-    
-        updateLogSetAsPaid();
-        var intervalId = setInterval(updateLogSetAsPaid, 3000);
-    
-        $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 2, idCompany: idCompany }, function (result) {
-    
-            var close = document.getElementById('closeLog');
-            close.style.display = 'inline';
-    
-            var loadingProcess = document.getElementById('loadingProcess');
-            loadingProcess.style.display = 'none';
-    
-            if (table1.length > 0) {
-                table1.api().ajax.reload(null, false);
-            }
-    
-            if (table2.length > 0) {
-                table2.api().ajax.reload(null, false);
-            }
-    
-            $("#closeLog").click(function () {
-                clearTimeout(intervalId);
-                $("#process-log-container").remove();
-            });
-        });
-    });
-    */
-    $('#setAsPaidAtrasado').click(function () {
-        var table = $('#listinstructionsC-container table').DataTable();
-        var list = [];
-        table.$("input[type='checkbox']:checked").each(function () {
-            list.push(this.name);
-        });
-
-        updateLogSetAsPaid();
-        var intervalId = setInterval(updateLogSetAsPaid, 3000);
-
-        $.post("/instructions/setAsPaid/", { list: list.join(","), status_paid: 3, idCompany: idCompany }, function (result) {
-
-            var close = document.getElementById('closeLog');
-            close.style.display = 'inline';
-
-            var loadingProcess = document.getElementById('loadingProcess');
-            loadingProcess.style.display = 'none';
-
-            if (table1.length > 0) {
-                table1.api().ajax.reload(null, false);
-            }
-
-            if (table2.length > 0) {
-                table2.api().ajax.reload(null, false);
-            }
-
-            $("#closeLog").click(function () {
-                clearTimeout(intervalId);
-                $("#process-log-container").remove();
-            });
-        });
-    });
 
     $('#createInvoice').click(function () {
         var table = $('#listinstructionsC-container table').DataTable();
@@ -919,40 +877,6 @@ function updateLogCreation() {
     }
 
     $.post("/instructions/updateLog", { log: "creation" }, function (result) {
-        if (result.length > 0) {
-            var t = new Date();
-            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
-        }
-    });
-
-};
-
-function updateLogRejection() {
-
-    var logContainer = $("#process-log-container");
-
-    if (logContainer.length === 0) {
-        logContainer = $("<div id='process-log-container'><div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw' id='loadingProcess'></i> <i class='fa fa-times fa-lg' id='closeLog' aria-hidden='true' style='display: none'></i> </h3> </div></div>").appendTo("body");
-    }
-
-    $.post("/instructions/updateLog", { log: "rejection" }, function (result) {
-        if (result.length > 0) {
-            var t = new Date();
-            logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")
-        }
-    });
-
-};
-
-function updateLogAcceptance() {
-
-    var logContainer = $("#process-log-container");
-
-    if (logContainer.length === 0) {
-        logContainer = $("<div id='process-log-container'><div id='log'><h3> Process log <i class='fas fa-sync-alt fa-spin fa-1x fa-fw' id='loadingProcess'></i> <i class='fa fa-times fa-lg' id='closeLog' aria-hidden='true' style='display: none'></i> </h3> </div></div>").appendTo("body");
-    }
-
-    $.post("/instructions/updateLog", { log: "acceptance" }, function (result) {
         if (result.length > 0) {
             var t = new Date();
             logContainer.find("#log").append("<p>" + t.toLocaleString() + ": " + result + "</p>")

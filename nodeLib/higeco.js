@@ -68,7 +68,7 @@ class HigecoPortalDriver {
         models.plants.findAll().then(plants => {
 
             async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 1), to: new Date(2018, 10, 20) }, function () {
+                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
                     return callback();
                 });
             }, function (err) {

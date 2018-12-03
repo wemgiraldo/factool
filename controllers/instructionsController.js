@@ -253,7 +253,8 @@ exports.setAsInvoiced = [
         var status_billed = req.body.invoiced_st.split(",");
         var lists = req.body.list.split(",");
         var accept_st = req.body.accept_st.split(",");
-
+        var accept_date = req.body.accept_date.split(",");
+        
         async.forEachOf(lists, function (value, key, callback) {
             models.instructions.findOne({ where: { id_cen: value }, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
                 instr.updateAttributes({ status_billed_2: status_billed[key] });
@@ -264,7 +265,7 @@ exports.setAsInvoiced = [
                     net_amount: instr.amount,
                     folio: folio[key],
                     type: type[key],
-                    acceptance_dt: new Date(),
+                    acceptance_dt: accept_date[key],
                     reported_by_creditor: false,
                     acceptance_status: accept_st[key]
                 }
