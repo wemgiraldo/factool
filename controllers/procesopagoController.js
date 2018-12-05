@@ -156,7 +156,7 @@ exports.createNominaPago = [
                     2,
                     instr[0].creditor_info.rut + instr[0].creditor_info.verification_code,
                     instr[0].creditor_info.business_name,
-                    instr[0].creditor_info.bank_account,
+                    (instr[0].creditor_info.bank_account_2 === null) ? instr[0].creditor_info.bank_account : instr[0].creditor_info.bank_account_2,
                     instr[0].amount_gross,
                     instr[0].creditor_info.bank_info.type,
                     instr[0].creditor_info.bank_info.sbif

@@ -5,6 +5,8 @@ include ../mixin/conditionalBadge.pug
 block append scripts
 
 block content
+  .display-3.content-title.ml-2.mt-3.pl-3= company.name +" [ ID: "+ company.id +" ]" 
+    a(class="btn btn-backend m-3" href="/company/edit/"+ company.id ) Edit
   .row
     .col-sm-6
       .d-flex.flex-wrap.mt-5.ml-2
@@ -85,5 +87,15 @@ block content
                   tr
                     th Email
                     td=company.b_c_email
+
+    .col-sm-6
+      .d-flex.flex-wrap.mt-5.ml-2
+
+          .card.mx-3.flex-grow-1
+            .card-header.card-heading-dark.mb-3 ADDITIONAL INFO
+            table.table
+                  tr
+                    th 2° Bank Account
+                    td=company.bank_account_2
 
           

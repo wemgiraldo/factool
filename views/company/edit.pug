@@ -1,0 +1,28 @@
+extends ../layout
+
+include ../mixin/form/renderInputField.pug
+include ../mixin/form/renderSelectField.pug
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            a(class="nav-link", href="/company/list") Back
+
+
+block content
+  .row
+    .col-sm
+        .display-3.content-title.ml-5.mt-3=title
+
+  .row
+    .col-sm-6
+        form.mt-5.mr-5(method='POST' action='' form='companyForm')
+            div.card.container-fluid.mt-5
+                .card-header GENERAL INFO
+                .form-row
+                    .form-group.col-sm
+                        +renderInputField("text","bank_account_2","Bank Account",(null===company ? '' : company.bank_account_2),errors)(required)
+            .form-row.mt-5
+                button.btn.btn-backend.ml-4(type='submit') Save

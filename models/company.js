@@ -35,6 +35,10 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    bank_account_2: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     bank: {
       type: DataTypes.BIGINT,
       allowNull: true
