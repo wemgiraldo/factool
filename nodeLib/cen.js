@@ -999,6 +999,9 @@ class CEN {
                         return callback();
                     });
 
+                
+            }, function (err) {
+
                 setTimeout(function () {
 
                     cen.refreshData(function (err) {
@@ -1007,8 +1010,6 @@ class CEN {
 
                 }, (cen.config.cenAPI.refreshPeriod));
 
-            }, function (err) {
-                //logger.log("refreshData COMPLETED");
                 return callback();
             });
         }
