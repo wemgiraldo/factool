@@ -13,7 +13,7 @@
         "LOG": "{\"level\":\"dbg\",\"file\":\"log/factool.log\",\"stdout\":true,\"color\":false,\"maxLogLength\":1000}"
     },
     "cenAPI": {
-        "refreshPeriod": "60000",
+        "refreshPeriod": "900000",
         "username": "e.isla@buildingenergy.it",
         "password": "123parronal",
         "idCompanyDefault": "339"
