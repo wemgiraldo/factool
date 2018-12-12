@@ -287,7 +287,10 @@ exports.getDataMoney = [
                     [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
                     [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
                 ],
-                order: [['created_ts', 'ASC']]
+                order: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts')), 'ASC'],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts')), 'ASC']
+                ]
             }).then(instr => {
                 async.forEachOf(instr, function (value, key, callback) {
                     serie.compra[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
@@ -325,7 +328,10 @@ exports.getDataMoney = [
                     [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
                     [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
                 ],
-                order: [['created_ts', 'ASC']]
+                order: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts')), 'ASC'],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts')), 'ASC']
+                ]
             }).then(instr => {
                 async.forEachOf(instr, function (value, key, callback) {
                     serie.venta[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
@@ -393,7 +399,14 @@ exports.getDataEnergy = [
                     [models.sequelize.fn('month', models.sequelize.col('timestamp'))],
                     [models.sequelize.fn('year', models.sequelize.col('timestamp'))]
                 ],
-                order: [['timestamp', 'ASC']]
+                order: [
+                    ['item_id', 'ASC'],
+                    ['plant_id', 'ASC'],
+                    [models.sequelize.fn('hour', models.sequelize.col('timestamp')), 'ASC'],
+                    [models.sequelize.fn('day', models.sequelize.col('timestamp')), 'ASC'],
+                    [models.sequelize.fn('month', models.sequelize.col('timestamp')), 'ASC'],
+                    [models.sequelize.fn('year', models.sequelize.col('timestamp')), 'ASC']
+                ]
             }).then(measurements => {
                 async.forEachOf(measurements, function (value, key, callback) {
                     var timeDiff = Math.abs(value.dataValues.timestamp.getTime() - req.from.getTime());
