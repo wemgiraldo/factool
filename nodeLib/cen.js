@@ -31,21 +31,21 @@ class CEN {
         this.env = process.env.NODE_ENV || 'development';
 
         //if (this.env !== 'development') {
-            // GET DATA TYPES
-           // this.refreshDataTypes();
+        // GET DATA TYPES
+        this.refreshDataTypes();
 
-            // SET THE DEFAULT COMPANY IDs
-            this.getPlants(function () {
-                // REFRESH DATA EACH 15min
-              //  cen.refreshData(function () {
-                    logger.log("REFRESH DATA COMPLETED");
-            //    });
+        // SET THE DEFAULT COMPANY IDs
+        this.getPlants(function () {
+            // REFRESH DATA EACH 15min
+            cen.refreshData(function () {
+                logger.log("REFRESH DATA COMPLETED");
             });
-       /*} else {
-            this.getPlants(function () {
-                logger.log("GET PLANT COMPLETED");
-            });
-        }*/
+        });
+        /*} else {
+             this.getPlants(function () {
+                 logger.log("GET PLANT COMPLETED");
+             });
+         }*/
 
     }
 
@@ -999,7 +999,7 @@ class CEN {
                         return callback();
                     });
 
-                
+
             }, function (err) {
 
                 setTimeout(function () {
