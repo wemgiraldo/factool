@@ -255,76 +255,91 @@ exports.getDataMoney = [
     },
     getPlants,
     function (req, res, next) {
+        req.series = [];
         async.forEachOf(req.plants, function (value, key, callback) {
-            req.plantsFilterC.$or.push({ "creditor": value.company_cen_id });
-            req.plantsFilterD.$or.push({ "debtor": value.company_cen_id });
+            req.series.push({ name: value.name, debtor: value.company_cen_id, creditor: value.company_cen_id, venta: new Array(12).fill(0), compra: new Array(12).fill(0) });
             return callback();
         }, function (err) {
             next();
         });
     },
     function (req, res, next) {
-        //compra
-        req.filter = {};
-        req.filter['created_ts'] = {
-            $between: [req.firstDay, req.lastDay]
-        }
-        req.filter['$or'] = req.plantsFilterD.$or;
 
-        models.instructions.findAll({
-            attributes: [
-                [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
-                [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
-                [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
-            ],
-            where: req.filter,
-            group: [
-                [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
-                [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
-            ],
-            order: [['created_ts', 'ASC']]
-        }).then(instr => {
-            async.forEachOf(instr, function (value, key, callback) {
-                req.compra[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
-                return callback();
-            }, function (err) {
-                next();
+        async.forEachOf(req.series, function (value, key, callback) {
+            var serie = value;
+
+            req.filter = {};
+            req.filter['created_ts'] = {
+                $between: [req.firstDay, req.lastDay]
+            }
+            req.filter['$or'] = {
+                debtor: serie.debtor
+            };
+
+            models.instructions.findAll({
+                attributes: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
+                    [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
+                ],
+                where: req.filter,
+                group: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
+                ],
+                order: [['created_ts', 'ASC']]
+            }).then(instr => {
+                async.forEachOf(instr, function (value, key, callback) {
+                    serie.compra[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
+                    return callback();
+                }, function (err) {
+                    return callback();
+                });
             });
+        }, function (err) {
+            next();
         });
     },
     function (req, res, next) {
-        //venta
-        req.filter = {};
-        req.filter['created_ts'] = {
-            $between: [req.firstDay, req.lastDay]
-        }
 
-        req.filter['$or'] = req.plantsFilterC.$or;
+        async.forEachOf(req.series, function (value, key, callback) {
+            var serie = value;
 
-        models.instructions.findAll({
-            attributes: [
-                [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
-                [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
-                [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
-            ],
-            where: req.filter,
-            group: [
-                [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
-                [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
-            ],
-            order: [['created_ts', 'ASC']]
-        }).then(instr => {
-            async.forEachOf(instr, function (value, key, callback) {
-                req.venta[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
-                return callback();
-            }, function (err) {
-                next();
+            req.filter = {};
+            req.filter['created_ts'] = {
+                $between: [req.firstDay, req.lastDay]
+            }
+            req.filter['$or'] = {
+                creditor: serie.creditor
+            };
+
+
+            models.instructions.findAll({
+                attributes: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts')), "month"],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts')), "year"],
+                    [models.sequelize.fn('sum', models.sequelize.col('amount')), "amount"]
+                ],
+                where: req.filter,
+                group: [
+                    [models.sequelize.fn('month', models.sequelize.col('created_ts'))],
+                    [models.sequelize.fn('year', models.sequelize.col('created_ts'))]
+                ],
+                order: [['created_ts', 'ASC']]
+            }).then(instr => {
+                async.forEachOf(instr, function (value, key, callback) {
+                    serie.venta[value.dataValues.month - 1] = parseFloat(value.dataValues.amount);
+                    return callback();
+                }, function (err) {
+                    return callback();
+                });
             });
+        }, function (err) {
+            next();
         });
-
     },
     function (req, res, next) {
-        res.send({ compra: req.compra, venta: req.venta });
+        res.send(req.series);
     }]
 
 /* getDataEnergy */
@@ -341,12 +356,7 @@ exports.getDataEnergy = [
 
         next();
     },
-    function (req, res, next) {
-        models.plants.findAll().then(plants => {
-            req.plants = plants;
-            next();
-        });
-    },
+    getPlants,
     function (req, res, next) {
         var timeDiff = Math.abs(req.to.getTime() - req.from.getTime());
         req.nSamples = Math.ceil(timeDiff / (3600 * 1000));
@@ -626,7 +636,6 @@ function getPlants(req, res, next) {
 
 }
 
-
 function getInstructionsList(req, res, next) {
 
     if (req.filterInstrPay) {
@@ -661,7 +670,6 @@ function getPlants(req, res, next) {
     });
 
 }
-
 
 function getDteById(dtes, id) {
 

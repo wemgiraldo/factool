@@ -537,15 +537,35 @@ function GetDataMoney() {
                     shadow: false
                 }
             },
-            series: [{
-                name: 'Venta',
-                data: result.venta
-            },
-            {
-                name: 'Compra',
-                data: result.compra,
-                yAxis: 1
-            }]
+            series: [
+                {
+                    name: 'Peralillo Venta',
+                    data: result[0].venta
+                },
+                {
+                    name: 'Villa Prat Venta',
+                    data: result[1].venta
+                },
+                {
+                    name: 'Alto Solar Venta',
+                    data: result[2].venta
+                },
+                {
+                    name: 'Peralillo Compra',
+                    data: result[0].compra,
+                    yAxis: 1
+                },
+                {
+                    name: 'Villa Prat Compra',
+                    data: result[1].compra,
+                    yAxis: 1
+                },
+                {
+                    name: 'Alto Solar Compra',
+                    data: result[2].compra,
+                    yAxis: 1
+                }
+            ]
         });
 
     });

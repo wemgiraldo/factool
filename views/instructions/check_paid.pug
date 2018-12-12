@@ -1,0 +1,38 @@
+extends ../layout
+
+block sub-header
+  header(role="navigation" class="subheader navbar navbar-expand-lg navbar-dark")
+    div.collapse.navbar-collapse(id="navbarSupportedContent")
+      ul(class="navbar-nav mr-auto")
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/debtor/?id=" + idCompany) PURCHASES
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/listProcesoPago/?id=" + idCompany) PAYMENT PROCESS
+        li(class="nav-item")
+            a(class="nav-link", href="/instructions/checkPaid/") CHECK PAID
+
+block append scripts
+  script(src="/javascripts/list_check_paid.js")
+
+block content
+
+    form.mt-3.ml-3.mr-3.form-inline(ref='uploadForm' id='uploadForm' action='/upload' method='post' encType="multipart/form-data")
+        input(type="file" name="sampleFile").mr-3.form-control
+        input(type="submit" value="Upload!").form-control
+
+    if data 
+        .col-sm#listCheckPaid-container
+            table.table.table-hover.mt-5(data-title='NOMINA DE PAGOS')
+                thead
+                tr
+                    each label, key in cols
+                        if (key === "0" )
+                            th
+                                input(type="checkbox" name="select_all" value="1" id="table-select-all")          
+                        else
+                            th(class="proceso"+label)=label
+                tbody
+                each d in data
+                    tr(data-id=d.id)
+                        each label,key in cols
+                            td=d[key]

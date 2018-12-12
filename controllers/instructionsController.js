@@ -197,6 +197,54 @@ exports.listInstructionsC = [
 
     }]
 
+exports.checkPaid = [
+    function (req, res, next) {
+
+        req.fileName = req.query.fileName;
+
+        if (!req.fileName) {
+            return res.render("instructions/check_paid", { file: null });
+        }
+
+        next();
+    },
+    function (req, res, next) {
+
+        req.pathXls = path.join(global.appRoot, '/public/upload_files/', req.fileName);
+        var wb = XLSX.readFile(req.pathXls);
+        var ws = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+
+        var cols = {
+            "0": "",
+            "1": "Date",
+            "2": "Description",
+            "3": "Doc Number",
+            "4": "Out",
+            "5": "In",
+            "6": "Total"
+        };
+
+        var data = { data: [] };
+        for (var i = 14; i < ws.length; i++) {
+            var row = ws[i];
+            if (row.length === 0) break;
+            data.data.push([
+                "",
+                moment(new Date((row[0] - (25567 + 1)) * 86400 * 1000)).format("YYYY-MM-DD"), // date
+                row[1], // description
+                row[2], // doc number
+                row[3], // out
+                row[4], // in
+                row[5]  // total
+            ]);
+        }
+
+        return res.render("instructions/check_paid", { data: data.data, cols: cols });
+
+    }
+]
+
+
 /* SET AS PAID */
 exports.setAsPaid = [
     function (req, res, next) {
@@ -254,7 +302,7 @@ exports.setAsInvoiced = [
         var lists = req.body.list.split(",");
         var accept_st = req.body.accept_st.split(",");
         var accept_date = req.body.accept_date.split(",");
-        
+
         async.forEachOf(lists, function (value, key, callback) {
             models.instructions.findOne({ where: { id_cen: value }, include: [{ model: models.company, as: "debtor_info" }, { model: models.company, as: "creditor_info" }] }).then(instr => {
                 instr.updateAttributes({ status_billed_2: status_billed[key] });

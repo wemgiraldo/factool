@@ -13,6 +13,9 @@ router.get('/instructions/creditor/', instructionsController.listInstructionsC);
 /* LIST OF PROCESOS DE PAGOS */
 router.get('/instructions/listProcesoPago/', procesopagoController.listProcesoPago);
 
+/* CHECK PAID INSTR */
+router.get('/instructions/checkPaid/:fileName?', instructionsController.checkPaid);
+
 
 
 /* CREATE INVOICES */
@@ -29,6 +32,8 @@ router.post('/instructions/setAsPaid/', instructionsController.setAsPaid);
 
 /* SET AS INVOICED */
 router.post('/instructions/setAsInvoiced/', instructionsController.setAsInvoiced);
+
+
 
 
 /* CREATE A NEW PROCESO DE PAGO */
