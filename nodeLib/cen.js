@@ -30,7 +30,7 @@ class CEN {
 
         this.env = process.env.NODE_ENV || 'development';
 
-        if (this.env !== 'development') {
+        //if (this.env !== 'development') {
             // GET DATA TYPES
             this.refreshDataTypes();
 
@@ -41,11 +41,11 @@ class CEN {
                     logger.log("REFRESH DATA COMPLETED");
                 });
             });
-        } else {
+       /*} else {
             this.getPlants(function () {
                 logger.log("GET PLANT COMPLETED");
             });
-        }
+        }*/
 
     }
 

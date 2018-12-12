@@ -72,6 +72,15 @@ exports.listInstructionsD = [
             var ingr = req.instructions[i];
             var dte = getDteById(req.dtes, ingr.id_cen);
             var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
+
+            if (!dte) {
+                console.log("ERR")
+            }
+
+            if (!payM) {
+                console.log("ERR")
+            }
+
             data.data.push([
                 "",
                 ingr.id_cen,
@@ -155,6 +164,15 @@ exports.listInstructionsC = [
             var ingr = req.instructions[i];
             var dte = getDteById(req.dtes, ingr.id_cen);
             var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
+            
+            if (!dte) {
+                console.log("ERR")
+            }
+
+            if (!payM) {
+                console.log("ERR")
+            }
+            
             data.data.push([
                 "",
                 ingr.id_cen,
