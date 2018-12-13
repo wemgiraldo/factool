@@ -91,7 +91,15 @@ function updateMeasurements(higeco_driver, filter, callback) {
 
     higeco_driver.getMeasurements(filter, function (err, resp) {
 
-        if (err) return logger.log(err);
+        if (err) {
+            if (err === "Unauthorized") {
+                this.getToken(this.username, this.password, function (err, token) {
+                    higeco_driver.authtoken = token;
+                    return logger.log(err);
+                });  
+            }
+        }
+
         // IF NO RESULTS -> EXIT
         if (!resp.data) return logger.log("NO DATA");
         if (resp.data.length === 0) return logger.log("NO DATA");
@@ -105,7 +113,7 @@ function updateMeasurements(higeco_driver, filter, callback) {
             async.forEachOf(resp.data, function (value, key, callback) {
 
                 if (value[1] === '#E3') {
-                    value[1] = null; 
+                    value[1] = null;
                 }
 
                 var data = {
