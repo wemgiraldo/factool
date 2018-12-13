@@ -93,7 +93,7 @@ function updateMeasurements(higeco_driver, filter, callback) {
 
         if (err) {
             if (err === "Unauthorized") {
-                this.getToken(this.username, this.password, function (err, token) {
+                higeco_driver.getToken(this.username, this.password, function (err, token) {
                     higeco_driver.authtoken = token;
                     return logger.log(err);
                 });  
