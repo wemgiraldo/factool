@@ -101,6 +101,7 @@ function updateMeasurements(higeco_driver, filter, callback) {
         }
 
         // IF NO RESULTS -> EXIT
+        if (!resp) return logger.log("NO RESP");
         if (!resp.data) return logger.log("NO DATA");
         if (resp.data.length === 0) return logger.log("NO DATA");
 
