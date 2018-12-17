@@ -19,7 +19,7 @@
         "idCompanyDefault": "339"
     },
     "higecoAPI": {
-        "refreshPeriod": "60000",
+        "refreshPeriod": "900000",
         "username": "building" ,
         "password": "building2012",
         "endpoint": "http://buildingenergy2.gwc4-web.com"
