@@ -12,13 +12,8 @@ class HigecoPortalDriver {
         this.password = this.config.higecoAPI.password;
         this.authtoken = "";
 
-        // GET AUTH TOKEN
-        this.getToken(this.username, this.password, function (err, token) {
-            higeco_driver.authtoken = token;
+        this.refreshData();
 
-            // REFRESH DATA EACH 15mins
-            higeco_driver.refreshData();
-        });
 
     }
 
@@ -63,27 +58,36 @@ class HigecoPortalDriver {
 
         var me = this;
 
-        logger.log("START GET MEASUREMENTS");
 
-        models.plants.findAll().then(plants => {
+        // GET AUTH TOKEN
+        this.getToken(this.username, this.password, function (err, token) {
+            higeco_driver.authtoken = token;
 
-            async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
-                    return callback();
+            logger.log("START GET MEASUREMENTS");
+
+            models.plants.findAll().then(plants => {
+
+                async.forEachOf(plants, function (value, key, callback) {
+                    updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
+                        return callback();
+                    });
+                }, function (err) {
+                    if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
+                    return logger.log("GET MEASUREMENTS - OK");
                 });
-            }, function (err) {
-                if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
-                return logger.log("GET MEASUREMENTS - OK");
+
             });
+
+            setTimeout(function () {
+
+                higeco_driver.refreshData();
+    
+            }, (higeco_driver.config.higecoAPI.refreshPeriod));    
 
         });
 
-        setTimeout(function () {
 
-            higeco_driver.refreshData();
-
-        }, (this.config.higecoAPI.refreshPeriod));
-
+       
     }
 }
 
@@ -92,12 +96,8 @@ function updateMeasurements(higeco_driver, filter, callback) {
     higeco_driver.getMeasurements(filter, function (err, resp) {
 
         if (err) {
-            if (err === "Unauthorized") {
-                higeco_driver.getToken(this.username, this.password, function (err, token) {
-                    higeco_driver.authtoken = token;
-                    return logger.log(err);
-                });  
-            }
+            logger.log(err);
+            return err;
         }
 
         // IF NO RESULTS -> EXIT
