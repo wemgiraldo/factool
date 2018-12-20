@@ -802,7 +802,7 @@ class CEN {
                         return callback();
                     });
                 });
-            },
+            }/*,
             function (callback) {
                 // GET TransactionTypes DATA
                 me.getCompany({ limit: 5000, offset: 0 }, function (resp) {
@@ -917,7 +917,7 @@ class CEN {
                         return callback();
                     });
                 });
-            }
+            }*/
         ],
             // optional callback
             function (err, results) {
@@ -1064,24 +1064,24 @@ class CEN {
                 logger.log("START GET DATA FOR IDCOMPANY: " + idCompany);
 
                 async.parallel([
-                    /*function (callback) {
-                        updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
-                            if (err) return callback(err);
-                            return callback();
-                        });
-                    },*/
                     function (callback) {
-                        updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                        updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
                             return callback();
                         });
                     },
                     function (callback) {
-                        updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
-                            if (err) return callback(err);
+                        updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                            //if (err) return callback(err);
                             return callback();
                         });
-                    },/*
+                    },
+                    function (callback) {
+                        updateDte(me, { debtor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
+                            //if (err) return callback(err);
+                            return callback();
+                        });
+                    },
                     function (callback) {
                         updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
@@ -1093,7 +1093,7 @@ class CEN {
                             if (err) return callback(err);
                             return callback();
                         });
-                    },*/
+                    },
                     function (callback) {
                         updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
