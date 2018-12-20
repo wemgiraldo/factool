@@ -6,7 +6,7 @@ class CEN {
 
     constructor(config) {
 
-        var test = true;
+        var test = false;
         if (test) {
             this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
         } else {
@@ -802,6 +802,121 @@ class CEN {
                         return callback();
                     });
                 });
+            },
+            function (callback) {
+                // GET TransactionTypes DATA
+                me.getCompany({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (!resp.results) return callback("Connection problem - API no work.", false);
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            name: resp.results[key].name,
+                            rut: resp.results[key].rut,
+                            verification_code: resp.results[key].verification_code,
+                            business_name: resp.results[key].business_name,
+                            commercial_business: resp.results[key].commercial_business,
+                            dte_reception_email: resp.results[key].dte_reception_email,
+                            bank_account: resp.results[key].bank_account,
+                            bank: resp.results[key].bank,
+                            commercial_address: resp.results[key].commercial_address,
+                            postal_address: resp.results[key].postal_address,
+                            manager: resp.results[key].manager,
+                            p_c_first_name: resp.results[key].payments_contact ? resp.results[key].payments_contact.first_name : "",
+                            p_c_last_name: resp.results[key].payments_contact ? resp.results[key].payments_contact.last_name : "",
+                            p_c_address: resp.results[key].payments_contact ? resp.results[key].payments_contact.address : "",
+                            p_c_phones: resp.results[key].payments_contact ? resp.results[key].payments_contact.phones.toString() : "",
+                            p_c_email: resp.results[key].payments_contact ? resp.results[key].payments_contact.email : "",
+                            b_c_first_name: resp.results[key].bills_contact ? resp.results[key].bills_contact.first_name : "",
+                            b_c_last_name: resp.results[key].bills_contact ? resp.results[key].bills_contact.last_name : "",
+                            b_c_address: resp.results[key].bills_contact ? resp.results[key].bills_contact.address : "",
+                            b_c_phones: resp.results[key].bills_contact ? resp.results[key].bills_contact.phones.toString() : "",
+                            b_c_email: resp.results[key].bills_contact ? resp.results[key].bills_contact.email : "",
+                            created_ts: resp.results[key].created_ts,
+                            updated_ts: resp.results[key].updated_ts
+                        }
+
+                        updateOrCreate(models.company, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            return callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET BillingWindows DATA
+                me.getBillingWindows({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (!resp.results) return callback("Connection problem - API no work.", false);
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id: resp.results[key].id,
+                            natural_key: resp.results[key].natural_key,
+                            billing_type: resp.results[key].billing_type,
+                            periods: resp.results[key].periods.toString(),
+                            created_ts: resp.results[key].created_ts,
+                            updated_ts: resp.results[key].updated_ts
+                        }
+                        updateOrCreate(models.billing_windows, { id: data.id }, data, function (err) {
+                            if (err) return callback(err);
+                            return callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
+            },
+            function (callback) {
+                // GET PaymentMatrices DATA
+                me.getPaymentMatrices({ limit: 5000, offset: 0 }, function (resp) {
+                    // IF NO RESULTS -> EXIT
+                    if (!resp.results) return callback("Connection problem - API no work.", false);
+                    if (resp.results.length === 0) return callback("No results for the API response.", false);
+                    // UPDATE OR CREATE RECORDS
+                    async.forEachOf(resp.results, function (value, key, callback) {
+                        var data = {
+                            id_cen: resp.results[key].id,
+                            auxiliary_data: resp.results[key].auxiliary_data.toString(),
+                            created_ts: resp.results[key].created_ts,
+                            updated_ts: resp.results[key].updated_ts,
+                            payment_type: resp.results[key].payment_type,
+                            version: resp.results[key].version,
+                            payment_file: resp.results[key].payment_file,
+                            letter_code: resp.results[key].letter_code,
+                            letter_year: resp.results[key].letter_year,
+                            letter_file: resp.results[key].letter_file,
+                            matrix_file: resp.results[key].matrix_file,
+                            publish_date: resp.results[key].publish_date,
+                            payment_days: resp.results[key].payment_days,
+                            payment_date: resp.results[key].payment_date,
+                            billing_date: resp.results[key].billing_date,
+                            payment_window: resp.results[key].payment_window,
+                            natural_key: resp.results[key].natural_key,
+                            reference_code: resp.results[key].reference_code,
+                            billing_window: resp.results[key].billing_window,
+                            payment_due_type: resp.results[key].payment_due_type
+                        }
+                        updateOrCreate(models.payment_matrices, { id_cen: data.id_cen }, data, function (err) {
+                            if (err) return callback(err);
+                            return callback();
+                        });
+
+                    }, function (err) {
+                        if (err) return callback(err)
+                        return callback();
+                    });
+                });
             }
         ],
             // optional callback
@@ -949,12 +1064,12 @@ class CEN {
                 logger.log("START GET DATA FOR IDCOMPANY: " + idCompany);
 
                 async.parallel([
-                    function (callback) {
+                    /*function (callback) {
                         updateCompany(me, { limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
                             return callback();
                         });
-                    },
+                    },*/
                     function (callback) {
                         updateDte(me, { creditor: idCompany, limit: 10000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
@@ -966,7 +1081,7 @@ class CEN {
                             if (err) return callback(err);
                             return callback();
                         });
-                    },
+                    },/*
                     function (callback) {
                         updatePaymentMatrices(me, { limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
@@ -978,7 +1093,7 @@ class CEN {
                             if (err) return callback(err);
                             return callback();
                         });
-                    },
+                    },*/
                     function (callback) {
                         updateInstructions(me, { creditor: idCompany, limit: 5000, offset: 0 }, function (err, result) {
                             if (err) return callback(err);
