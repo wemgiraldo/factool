@@ -8,8 +8,8 @@
 *.hig64
 *.hig86
 *.sublime*
-config/config.json
-config/config.json.old
+#config/config.json
+#config/config.json.old
 
 # Folders
 */cmp/*

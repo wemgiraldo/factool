@@ -18,6 +18,11 @@
         "password": "123parronal",
         "idCompanyDefault": "339"
     },
+    "factAPI": {
+        "username": "e.isla@buildingenergy.it",
+        "password": "123parronal",
+        "idCompanyDefault": "339"
+    },
     "higecoAPI": {
         "refreshPeriod": "900000",
         "username": "building" ,

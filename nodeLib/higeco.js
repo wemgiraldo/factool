@@ -113,7 +113,7 @@ function updateMeasurements(higeco_driver, filter, callback) {
             var item = value;
             async.forEachOf(resp.data, function (value, key, callback) {
 
-                if (value[1] === '#E3') {
+                if (isNaN(value[1])) {
                     value[1] = null;
                 }
 
