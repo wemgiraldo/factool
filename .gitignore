@@ -20,3 +20,4 @@ log/*
 nbproject
 .vscode
 
+models/config/config.json
