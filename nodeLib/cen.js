@@ -39,7 +39,7 @@ class CEN {
             // REFRESH DATA EACH 15min
            // cen.refreshData(function () {
                 logger.log("REFRESH DATA COMPLETED");
-            });
+            //});
         });
         /*} else {
              this.getPlants(function () {
