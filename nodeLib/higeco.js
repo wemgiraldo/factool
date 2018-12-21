@@ -13,12 +13,8 @@ class HigecoPortalDriver {
         this.authtoken = "";
 
         // GET AUTH TOKEN
-        //this.getToken(this.username, this.password, function (err, token) {
-        //    higeco_driver.authtoken = token;
-        //    higeco_driver.refreshData();
-        //});
+        this.refreshData();
     }
-
 
     getToken(username, password, callback) {
 
@@ -43,7 +39,7 @@ class HigecoPortalDriver {
             headers: {
                 'authorization': this.authtoken
             },
-            url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.valueOf() + "&to=" + data.to.valueOf()
+            url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id + "/?samplingTime=900" //+ "?from=" + data.from.valueOf() + "&to=" + data.to.valueOf()
         }, function (err, res, body) {
             if (err) return callback(err, null)
             if (res.statusCode !== 200) return callback(res.statusMessage, null)
@@ -60,27 +56,32 @@ class HigecoPortalDriver {
 
         var me = this;
 
-        logger.log("START GET MEASUREMENTS");
+        this.getToken(this.username, this.password, function (err, token) {
 
-        models.plants.findAll().then(plants => {
+            me.authtoken = token;
 
-            async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: moment().add(-10,'hour'), to: moment() }, function () {
-                    return callback();
+            logger.log("START GET MEASUREMENTS");
+
+            models.plants.findAll().then(plants => {
+
+                async.forEachOf(plants, function (value, key, callback) {
+                    updateMeasurements(me, { plant: value, from: moment().add(-10, 'hour'), to: moment() }, function () {
+                        return callback();
+                    });
+                }, function (err) {
+                    if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
+                    return logger.log("GET MEASUREMENTS - OK");
                 });
-            }, function (err) {
-                if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
-                return logger.log("GET MEASUREMENTS - OK");
+
             });
 
+            setTimeout(function () {
+
+                higeco_driver.refreshData();
+
+            }, (higeco_driver.config.higecoAPI.refreshPeriod));
+
         });
-
-        setTimeout(function () {
-
-            higeco_driver.refreshData();
-
-        }, (higeco_driver.config.higecoAPI.refreshPeriod));
-
     }
 }
 
