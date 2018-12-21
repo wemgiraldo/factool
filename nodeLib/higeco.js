@@ -12,9 +12,11 @@ class HigecoPortalDriver {
         this.password = this.config.higecoAPI.password;
         this.authtoken = "";
 
-        this.refreshData();
-
-
+        // GET AUTH TOKEN
+        this.getToken(this.username, this.password, function (err, token) {
+            higeco_driver.authtoken = token;
+            higeco_driver.refreshData();
+        });
     }
 
 
@@ -58,35 +60,27 @@ class HigecoPortalDriver {
 
         var me = this;
 
-        // GET AUTH TOKEN
-        this.getToken(this.username, this.password, function (err, token) {
-            higeco_driver.authtoken = token;
+        logger.log("START GET MEASUREMENTS");
 
-            logger.log("START GET MEASUREMENTS");
+        models.plants.findAll().then(plants => {
 
-            models.plants.findAll().then(plants => {
-
-                async.forEachOf(plants, function (value, key, callback) {
-                    updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
-                        return callback();
-                    });
-                }, function (err) {
-                    if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
-                    return logger.log("GET MEASUREMENTS - OK");
+            async.forEachOf(plants, function (value, key, callback) {
+                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
+                    return callback();
                 });
-
+            }, function (err) {
+                if (err) return logger.log("GET MEASUREMENTS - NOT OK: " + err);
+                return logger.log("GET MEASUREMENTS - OK");
             });
-
-            setTimeout(function () {
-
-                higeco_driver.refreshData();
-    
-            }, (higeco_driver.config.higecoAPI.refreshPeriod));    
 
         });
 
+        setTimeout(function () {
 
-       
+            higeco_driver.refreshData();
+
+        }, (higeco_driver.config.higecoAPI.refreshPeriod));
+
     }
 }
 
