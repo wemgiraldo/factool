@@ -18,10 +18,10 @@
     }
   },
   "test": {
-    "username": "factool",
-    "password": "F@cT00l",
+    "username": "root",
+    "password": "Birba2366!",
     "database": "factool",
-    "host": "31.14.128.186",
+    "host": "127.0.0.1",
     "dialect": "mysql",
     "define": {
       "timestamps": false

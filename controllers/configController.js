@@ -118,7 +118,7 @@ exports.newUser_post = [
             models.user.create(user).then(user => {
                 logger.log("Created a new User from web.");
                 req.flash("success", "User created succesfully!");
-                res.redirect("/config/user/edit/" + rows.insertId);
+                res.redirect("/config/user/edit/" + user.id);
             }).catch(function (error) {
                 throw err;
             });
