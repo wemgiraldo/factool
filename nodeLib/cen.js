@@ -32,14 +32,14 @@ class CEN {
 
         //if (this.env !== 'development') {
         // GET DATA TYPES
-       // this.refreshDataTypes();
+        this.refreshDataTypes();
 
         // SET THE DEFAULT COMPANY IDs
         this.getPlants(function () {
             // REFRESH DATA EACH 15min
-           // cen.refreshData(function () {
+            cen.refreshData(function () {
                 logger.log("REFRESH DATA COMPLETED");
-            //});
+            });
         });
         /*} else {
              this.getPlants(function () {

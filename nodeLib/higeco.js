@@ -13,10 +13,10 @@ class HigecoPortalDriver {
         this.authtoken = "";
 
         // GET AUTH TOKEN
-        this.getToken(this.username, this.password, function (err, token) {
-            higeco_driver.authtoken = token;
-            higeco_driver.refreshData();
-        });
+        //this.getToken(this.username, this.password, function (err, token) {
+        //    higeco_driver.authtoken = token;
+        //    higeco_driver.refreshData();
+        //});
     }
 
 
@@ -43,7 +43,7 @@ class HigecoPortalDriver {
             headers: {
                 'authorization': this.authtoken
             },
-            url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.getTime() / 1000 + "&to=" + data.to.getTime() / 1000
+            url: this.endpoint + '/api/v1/getLogData/' + data.plant.plant_id + "/" + data.plant.device_id + "/" + data.plant.log_id + "/" + data.plant.item_id //+ "?from=" + data.from.valueOf() + "&to=" + data.to.valueOf()
         }, function (err, res, body) {
             if (err) return callback(err, null)
             if (res.statusCode !== 200) return callback(res.statusMessage, null)
@@ -65,7 +65,7 @@ class HigecoPortalDriver {
         models.plants.findAll().then(plants => {
 
             async.forEachOf(plants, function (value, key, callback) {
-                updateMeasurements(me, { plant: value, from: new Date(2018, 10, 20), to: new Date(2018, 10, 28) }, function () {
+                updateMeasurements(me, { plant: value, from: moment().add(-10,'hour'), to: moment() }, function () {
                     return callback();
                 });
             }, function (err) {
@@ -106,9 +106,9 @@ function updateMeasurements(higeco_driver, filter, callback) {
             var item = value;
             async.forEachOf(resp.data, function (value, key, callback) {
 
-                /*if (isNaN(value[1])) {
+                if (isNaN(value[1])) {
                     value[1] = null;
-                }*/
+                }
 
                 var data = {
                     item_id: item.id,
