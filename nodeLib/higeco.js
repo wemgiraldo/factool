@@ -12,7 +12,7 @@ class HigecoPortalDriver {
         this.password = this.config.higecoAPI.password;
         this.authtoken = "";
 
-        //this.refreshData();
+        this.refreshData();
 
 
     }
@@ -57,7 +57,6 @@ class HigecoPortalDriver {
     refreshData(callback) {
 
         var me = this;
-
 
         // GET AUTH TOKEN
         this.getToken(this.username, this.password, function (err, token) {

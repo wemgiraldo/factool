@@ -50,7 +50,7 @@ class CEN {
     }
 
     getPlants(callback) {
-        models.plants.findAll().then(plants => {
+        models.plants.findAll({ where: { enable: 1 } }).then(plants => {
             cen.plants = plants
             return callback();
         });
