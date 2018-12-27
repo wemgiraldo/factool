@@ -12,8 +12,10 @@ class HigecoPortalDriver {
         this.password = this.config.higecoAPI.password;
         this.authtoken = "";
 
+        this.env = process.env.NODE_ENV || 'production';
+        
         // GET AUTH TOKEN
-        this.refreshData();
+        //this.refreshData();
     }
 
     getToken(username, password, callback) {

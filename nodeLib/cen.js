@@ -6,13 +6,7 @@ class CEN {
 
     constructor(config) {
 
-        var test = true;
-        if (test) {
-            this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
-        } else {
-            this.endpoint = "https://ppagos-sen.coordinadorelectrico.cl";
-        }
-
+        this.env = process.env.NODE_ENV || 'production';
         this.config = config;
         this.username = this.config.cenAPI.username;
         this.password = this.config.cenAPI.password;
@@ -20,26 +14,24 @@ class CEN {
         this.idCompany = 0;
         this.plants = {};
 
-        // GET AUTH TOKEN
-        this.getToken(this.username, this.password, function (err, token) {
-            if (err) {
-                return logger.log(err);
-            }
-            cen.authtoken = token;
-        });
+        if (this.env === "test") {
+            this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
 
-        this.env = process.env.NODE_ENV || 'development';
+        } else {
+            this.endpoint = "https://ppagos-sen.coordinadorelectrico.cl";
+
+        }
 
         //if (this.env !== 'development') {
         // GET DATA TYPES
-        this.refreshDataTypes();
+       // this.refreshDataTypes();
 
         // SET THE DEFAULT COMPANY IDs
         this.getPlants(function () {
             // REFRESH DATA EACH 15min
-            cen.refreshData(function () {
+            //cen.refreshData(function () {
                 logger.log("REFRESH DATA COMPLETED");
-            });
+            //});
         });
         /*} else {
              this.getPlants(function () {

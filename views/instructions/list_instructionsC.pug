@@ -22,12 +22,21 @@ block content
             option=moment().add(-2,'years').format('YYYY')
             option=moment().add(-3,'years').format('YYYY')
 
-        select#month.form-control
-            each month,index in months
-                if index === moment().add(-1,'month').format('M')
-                    option(value=index selected)=month
-                else
-                    option(value=index)=month
+        if moment().format('D') <= 20 
+            select#month.form-control
+                each month,index in months
+                    if index === moment().add(-1,'month').format('M')
+                        option(value=index selected)=month
+                    else
+                        option(value=index)=month
+        else
+            select#month.form-control
+                each month,index in months
+                    if index === moment().format('M')
+                        option(value=index selected)=month
+                    else
+                        option(value=index)=month
+        
 
 
         

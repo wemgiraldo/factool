@@ -39,6 +39,18 @@ module.exports = function(sequelize, DataTypes) {
       company_cen_name: {
         type: DataTypes.TEXT,
         allowNull: true
+      },
+      username_fact: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
+      password_fact: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
+      rut_fact: {
+        type: DataTypes.TEXT,
+        allowNull: true
       }
     }, {
       tableName: 'plants'

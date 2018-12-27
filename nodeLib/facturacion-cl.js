@@ -47,12 +47,14 @@ class FacturacionCL {
         var creditor = instruction.creditor_info;
 
         getLastFolio(instruction.creditor, function (err, result) {
+
             if (err) {
                 logger.log("error");
                 return callback(err);
             }
 
             var folio = result; // INVOICE NUMBER
+
             var data = {
                 _declaration: {
                     _attributes: { version: "1.0", encoding: "ISO-8859-1" }
@@ -65,10 +67,10 @@ class FacturacionCL {
                             IdDoc: {
                                 TipoDTE: 33,
                                 Folio: folio,
-                                FchEmis: "2018-10-09",
+                                FchEmis: moment().format("YYYY-MM-DD"),
                                 FmaPago: 2,
                                 TermPagoGlosa: "CREDITO SII",
-                                FchVenc: "2018-10-12"
+                                FchVenc: moment().add(8, "day").format("YYYY-MM-DD")
                             },
                             Emisor: {
                                 RUTEmisor: numberWithThousands(creditor.rut) + "-" + creditor.verification_code,
@@ -128,18 +130,19 @@ class FacturacionCL {
             // SAVE THE XML IN A LOCAL FOLDER 
             var xml = require('fs').writeFileSync(path.join(global.appRoot, '/public/invoice/xml/F' + folio + 'T33.xml'), json2xml, 'utf8');
 
-            facturacion_cl.loadInvoice(instruction, xmlEncoded64, "2", function (err, result) {
-                if (err) {
-                    logger.log(err);
-                    return callback(err, result);
-                }
-                callback(null, result);
+            getLogin(instruction.creditor, function (err, result) {
+                facturacion_cl.loadInvoice(instruction, xmlEncoded64, "2", result, function (err, result) {
+                    if (err) {
+                        logger.log(err);
+                        return callback(err, result);
+                    }
+                    callback(null, result);
+                });
             });
-
         });
     }
 
-    loadInvoice(instruction, xml, type, callback) {
+    loadInvoice(instruction, xml, type, login, callback) {
         var args = {};
 
         logger.log("Connect to ..." + this.endpoint);
@@ -155,6 +158,14 @@ class FacturacionCL {
             }
 
             logger.log("Connected to " + facturacion_cl.endpoint);
+
+            facturacion_cl.login = {
+                Usuario: Buffer.from(login.username_fact).toString('base64'),
+                Rut: Buffer.from(login.rut_fact).toString('base64'),
+                Clave: Buffer.from(login.password_fact).toString('base64'),
+                IncluyeLink: "1",
+                Puerto: "9978"
+            }
 
             args = {
                 login: facturacion_cl.login,
@@ -260,6 +271,24 @@ async function getLastFolio(id, callback) {
             logger.log(error);
             return callback(error, false);
         });
+
+}
+
+
+async function getLogin(id, callback) {
+
+    await models.plants.findAll({
+        where: {
+            company_cen_id: id
+        },
+        limit: 1
+    }).then(function (result) {
+        if (result.length === undefined) {
+            return callback(err, "No plants");
+        } else {
+            return callback(null, result[0]);
+        }
+    });
 
 }
 
