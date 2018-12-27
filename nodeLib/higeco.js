@@ -15,7 +15,12 @@ class HigecoPortalDriver {
         this.env = process.env.NODE_ENV || 'production';
         
         // GET AUTH TOKEN
-        //this.refreshData();
+        
+        if (this.env === "test") {
+            //this.refreshData();
+        }else{
+            this.refreshData();
+        }
     }
 
     getToken(username, password, callback) {

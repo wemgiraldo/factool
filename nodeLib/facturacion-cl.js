@@ -12,14 +12,6 @@ class FacturacionCL {
 
         this.gmapApiKey = this.config.vendor.gmapApiKey;
 
-        this.login = {
-            Usuario: Buffer.from("QUEULE").toString('base64'),
-            Rut: Buffer.from("1-9").toString('base64'),
-            Clave: Buffer.from("plano91098").toString('base64'),
-            IncluyeLink: "1",
-            Puerto: "9978"
-        }
-
     }
 
     verificationAddress(address, callback) {
