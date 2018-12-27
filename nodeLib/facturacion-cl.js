@@ -212,12 +212,12 @@ class FacturacionCL {
                     models.dte_info.findOrCreate({ where: { folio: data.folio } })
                         .spread((record, created) => {
                             record.updateAttributes(data);
+                            return callback(data.error, false);
                         })
                         .catch(function (error) {
                             logger.log(error);
                             return callback(err, false);
                         });
-                    return callback(data.err, false);
                 }
 
                 logger.log("Loading into CEN");

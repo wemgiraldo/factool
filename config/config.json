@@ -1,6 +1,6 @@
 {
     "general": {
-        "name": "FacTool",
+        "name": "FaChile",
         "port": "3000"
     },
     "debug": {
@@ -10,7 +10,7 @@
         "LOGHTTPCALL": "on",
         "FILESYSTEMACT": "on",
         "logStringMaxLength": "1000",
-        "LOG": "{\"level\":\"dbg\",\"file\":\"log/factool.log\",\"stdout\":true,\"color\":false,\"maxLogLength\":1000}"
+        "LOG": "{\"level\":\"dbg\",\"file\":\"log/FaChile.log\",\"stdout\":true,\"color\":false,\"maxLogLength\":1000}"
     },
     "cenAPI": {
         "refreshPeriod": "900000",
@@ -19,8 +19,6 @@
         "idCompanyDefault": "339"
     },
     "factAPI": {
-        "username": "e.isla@buildingenergy.it",
-        "password": "123parronal",
         "idCompanyDefault": "339"
     },
     "higecoAPI": {

@@ -17,8 +17,15 @@ class CEN {
         if (this.env === "test") {
             this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
 
+            // GET DATA TYPES
+            this.refreshDataTypes();
+
+            // SET THE DEFAULT COMPANY IDs
             this.getPlants(function () {
-                logger.log("REFRESH DATA COMPLETED");
+                // REFRESH DATA EACH 15min
+                cen.refreshData(function () {
+                    logger.log("REFRESH DATA COMPLETED");
+                });
             });
 
         } else {
