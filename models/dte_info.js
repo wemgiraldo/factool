@@ -8,6 +8,10 @@ module.exports = function (sequelize, DataTypes) {
             primaryKey: true,
             autoIncrement: true
         },
+        company: {
+            type: DataTypes.INTEGER(11),
+            allowNull: true
+        },
         folio: {
             type: DataTypes.INTEGER(11),
             allowNull: true

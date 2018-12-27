@@ -13,11 +13,11 @@ class FacturacionCL {
         this.gmapApiKey = this.config.vendor.gmapApiKey;
 
         this.login = {
-            Usuario: Buffer.from("PARRONAL").toString('base64'),
+            Usuario: Buffer.from("QUEULE").toString('base64'),
             Rut: Buffer.from("1-9").toString('base64'),
             Clave: Buffer.from("plano91098").toString('base64'),
             IncluyeLink: "1",
-            Puerto: ""
+            Puerto: "9978"
         }
 
     }
@@ -46,7 +46,7 @@ class FacturacionCL {
         var debtor = instruction.debtor_info;
         var creditor = instruction.creditor_info;
 
-        getLastFolio(function (err, result) {
+        getLastFolio(instruction.creditor, function (err, result) {
             if (err) {
                 logger.log("error");
                 return callback(err);
@@ -150,7 +150,7 @@ class FacturacionCL {
 
         soap.createClient(this.endpoint, options, function (err, client) {
 
-            if (err){
+            if (err) {
                 return callback(err, false);
             }
 
@@ -177,6 +177,7 @@ class FacturacionCL {
                 if (resultJs.WSPLANO.Detalle.Documento.Resultado._text === "True") {
                     var data = {
                         instruction: instruction.id_cen,
+                        company: instruction.creditor,
                         gross_amount: instruction.amount_gross,
                         net_amount: instruction.amount,
                         folio: parseInt(resultJs.WSPLANO.Detalle.Documento.Folio._text),
@@ -191,6 +192,7 @@ class FacturacionCL {
                 } else {
                     var data = {
                         instruction: instruction.id_cen,
+                        company: instruction.creditor,
                         gross_amount: instruction.amount_gross,
                         net_amount: instruction.amount,
                         error: resultJs.WSPLANO.Detalle.Documento.Error._text,
@@ -203,7 +205,17 @@ class FacturacionCL {
                     }
                 }
 
-                if (data.err) return callback(data.err, false);
+                if (data.error) {
+                    models.dte_info.findOrCreate({ where: { folio: data.folio } })
+                        .spread((record, created) => {
+                            record.updateAttributes(data);
+                        })
+                        .catch(function (error) {
+                            logger.log(error);
+                            return callback(err, false);
+                        });
+                    return callback(data.err, false);
+                }
 
                 logger.log("Loading into CEN");
                 cen.putAuxiliaryFiles(data, function (err, invoice_file_id, file_url) {
@@ -212,22 +224,10 @@ class FacturacionCL {
                     data['invoice_file_id_cen'] = invoice_file_id;
                     data['file_url_cen'] = file_url;
 
-                    models.dte_info.findOrCreate({ where: { folio: data.folio } })
-                        .spread((record, created) => {
-                            record.updateAttributes(data);
-                            if (data.error) {
-                                return callback(data.error, false);
-                            } else {
-                                cen.postCreateDte(data, function (err, result) {
-                                    if (err) return callback(err, false);
-                                    return callback(null, true);
-                                });
-                            }
-                        })
-                        .catch(function (error) {
-                            logger.log(error);
-                            return callback(err, false);
-                        });
+                    cen.postCreateDte(data, function (err, result) {
+                        if (err) return callback(err, false);
+                        return callback(null, true);
+                    });
                 });
             });
         });
@@ -235,16 +235,26 @@ class FacturacionCL {
 }
 
 
-async function getLastFolio(callback) {
+async function getLastFolio(id, callback) {
     var folioNew;
 
-    await models.dte_info.findAll({ limit: 1, order: [['folio', 'DESC']] }).then(function (result) {
-        folioNew = result[0].folio + 1;
+    await models.dte_info.findAll({
+        where: {
+            company: id
+        },
+        limit: 1,
+        order: [['folio', 'DESC']]
+    }).then(function (result) {
+        if (result.length === undefined) {
+            folioNew = 1;
+        } else {
+            folioNew = result[0].folio + 1;
+        }
     });
 
     await models.dte_info.findOrCreate({ where: { folio: folioNew } })
         .spread((record, created) => {
-            if (created) return callback(null, folioNew);
+            return callback(null, folioNew);
         })
         .catch(function (error) {
             logger.log(error);

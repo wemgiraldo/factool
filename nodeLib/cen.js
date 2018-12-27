@@ -6,7 +6,7 @@ class CEN {
 
     constructor(config) {
 
-        var test = false;
+        var test = true;
         if (test) {
             this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
         } else {

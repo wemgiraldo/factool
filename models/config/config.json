@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "F4cTuR4c10n",
+    "password": "F4cTuR4C10n",
     "database": "factool",
     "host": "127.0.0.1",
     "dialect": "mysql",
@@ -36,21 +36,21 @@
     }
   },
   "production": {
-    "username": "bdf153e26ccfe9",
-    "password": "817b5223",
-    "database": "heroku_9245d3abc27d0b4",
-    "host": "eu-cdbr-west-02.cleardb.net",
+    "username": "root",
+    "password": "F4cTuR4C10n",
+    "database": "factool",
+    "host": "127.0.0.1",
     "dialect": "mysql",
     "define": {
       "timestamps": false
     },
     "logging": false,
     "pool": {
-      "max": 5,
+      "max": 10,
       "min": 0,
-      "idle": 30000,
-      "acquire": 30000,
-      "evict": 20000
+      "idle": 300000,
+      "acquire": 300000,
+      "evict": 200000
     }
   }
 }
