@@ -551,6 +551,10 @@ function GetDataMoney() {
                     data: result[2].venta
                 },
                 {
+                    name: 'El Queule Venta',
+                    data: result[3].venta
+                },
+                {
                     name: 'Peralillo Compra',
                     data: result[0].compra,
                     yAxis: 1
@@ -563,6 +567,11 @@ function GetDataMoney() {
                 {
                     name: 'Alto Solar Compra',
                     data: result[2].compra,
+                    yAxis: 1
+                },
+                {
+                    name: 'El Queule Compra',
+                    data: result[3].compra,
                     yAxis: 1
                 }
             ]

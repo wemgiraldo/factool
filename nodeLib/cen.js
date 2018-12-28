@@ -16,7 +16,7 @@ class CEN {
 
         if (this.env === "test") {
             this.endpoint = "https://staging-ppagos-sen.coordinadorelectrico.cl";
-
+            this.endpoint = "https://ppagos-sen.coordinadorelectrico.cl";
             // GET DATA TYPES
             this.refreshDataTypes();
 
