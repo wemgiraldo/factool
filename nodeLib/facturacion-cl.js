@@ -248,7 +248,7 @@ async function getLastFolio(id, callback) {
         limit: 1,
         order: [['folio', 'DESC']]
     }).then(function (result) {
-        if (result.length === undefined) {
+        if (result.length === undefined || result.length === 0) {
             folioNew = 1;
         } else {
             folioNew = result[0].folio + 1;
