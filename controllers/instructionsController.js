@@ -73,13 +73,13 @@ exports.listInstructionsD = [
             var dte = getDteById(req.dtes, ingr.id_cen);
             var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
 
-           /* if (!dte) {
-                console.log("ERR")
-            }
-
-            if (!payM) {
-                console.log("ERR")
-            }*/
+            /* if (!dte) {
+                 console.log("ERR")
+             }
+ 
+             if (!payM) {
+                 console.log("ERR")
+             }*/
 
             data.data.push([
                 "",
@@ -164,7 +164,7 @@ exports.listInstructionsC = [
             var ingr = req.instructions[i];
             var dte = getDteById(req.dtes, ingr.id_cen);
             var payM = getPayMxById(req.payment_matrix, ingr.payment_matrix);
-            
+
             /*if (!dte) {
                 console.log("ERR")
             }
@@ -172,7 +172,7 @@ exports.listInstructionsC = [
             if (!payM) {
                 console.log("ERR")
             }*/
-            
+
             data.data.push([
                 "",
                 ingr.id_cen,
@@ -266,6 +266,10 @@ exports.checkPaid = [
 /* SET AS PAID */
 exports.setAsPaid = [
     function (req, res, next) {
+        log["setAsPaid"] = [];
+        next();
+    },
+    function (req, res, next) {
 
         if (req.body.list === "") {
             log["setAsPaid"].push("No invoices selected!");
@@ -305,6 +309,10 @@ exports.setAsPaid = [
 
 /* SET AS INVOICED */
 exports.setAsInvoiced = [
+    function (req, res, next) {
+        log["setAsInvoiced"] = [];
+        next();
+    },
     function (req, res, next) {
 
         if (req.body.list === "") {
@@ -370,6 +378,10 @@ exports.setAsInvoiced = [
 
 /* CREATE INVOICEs */
 exports.createInvoice = [
+    function (req, res, next) {
+        log["creation"] = [];
+        next();
+    },
     getDteList,
     function (req, res, next) {
 
@@ -475,15 +487,6 @@ function getDteTypeById(dteType, id) {
 
 }
 
-function getDteAcceptStById(dteAcceptSt, id) {
-
-    for (var i = 0; i < dteAcceptSt.length; i++) {
-        var dteAS = dteAcceptSt[i];
-        if (dteAS.id === id) return dteAS.name;
-    }
-
-}
-
 function getPayMxById(payment_matrix, id) {
 
     for (var i = 0; i < payment_matrix.length; i++) {
@@ -493,23 +496,6 @@ function getPayMxById(payment_matrix, id) {
 
 }
 
-function getBillingStById(billingSt, id) {
-
-    for (var i = 0; i < billingSt.length; i++) {
-        var bSt = billingSt[i];
-        if (bSt.id === id) return bSt.name;
-    }
-
-}
-
-function getPaymentStById(paymentSt, id) {
-
-    for (var i = 0; i < paymentSt.length; i++) {
-        var pSt = paymentSt[i];
-        if (pSt.id === id) return pSt.name;
-    }
-
-}
 
 function getInstructionsList(req, res, next) {
 

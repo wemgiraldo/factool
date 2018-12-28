@@ -167,7 +167,7 @@ class FacturacionCL {
 
             logger.log("Creating Invoice");
             client.Procesar(args, function (err, result, rawResponse, soapHeader, rawRequest) {
-                logger.log("Created Invoice");
+
                 if (err) {
                     logger.log("error");
                     return callback(err, false);
@@ -178,6 +178,8 @@ class FacturacionCL {
 
                 // IF RESULT / CREATION IS TRUE
                 if (resultJs.WSPLANO.Detalle.Documento.Resultado._text === "True") {
+                    logger.log("Created Invoice");
+
                     var data = {
                         instruction: instruction.id_cen,
                         company: instruction.creditor,
@@ -193,6 +195,8 @@ class FacturacionCL {
                         reported_by_creditor: true
                     }
                 } else {
+                    logger.log("Invoice not created for some errors");
+                    //logger.log(resultJs.WSPLANO.Detalle.Documento.Error._text);
                     var data = {
                         instruction: instruction.id_cen,
                         company: instruction.creditor,
@@ -209,6 +213,7 @@ class FacturacionCL {
                 }
 
                 if (data.error) {
+
                     models.dte_info.findOrCreate({ where: { folio: data.folio } })
                         .spread((record, created) => {
                             record.updateAttributes(data);
@@ -218,20 +223,33 @@ class FacturacionCL {
                             logger.log(error);
                             return callback(err, false);
                         });
+
+                } else {
+
+                    models.dte_info.findOrCreate({ where: { folio: data.folio } })
+                        .spread((record, created) => {
+                            record.updateAttributes(data);
+                        })
+                        .catch(function (error) {
+                            logger.log(error);
+                            return callback(err, false);
+                        });
+
+                    logger.log("Loading into CEN");
+
+                    cen.putAuxiliaryFiles(data, function (err, invoice_file_id, file_url) {
+                        logger.log("Loaded into CEN");
+                        if (err) return callback(err, false);
+                        data['invoice_file_id_cen'] = invoice_file_id;
+                        data['file_url_cen'] = file_url;
+
+                        cen.postCreateDte(data, function (err, result) {
+                            if (err) return callback(err, false);
+                            return callback(null, true);
+                        });
+                    });
                 }
 
-                logger.log("Loading into CEN");
-                cen.putAuxiliaryFiles(data, function (err, invoice_file_id, file_url) {
-                    logger.log("Loaded into CEN");
-                    if (err) return callback(err, false);
-                    data['invoice_file_id_cen'] = invoice_file_id;
-                    data['file_url_cen'] = file_url;
-
-                    cen.postCreateDte(data, function (err, result) {
-                        if (err) return callback(err, false);
-                        return callback(null, true);
-                    });
-                });
             });
         });
     }
