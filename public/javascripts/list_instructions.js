@@ -819,6 +819,30 @@ $(document).ready(function () {
 
     });
 
+    
+    $('#deleteInvoice').click(function () {
+        var table = $('#listinstructionsC-container table').DataTable();
+
+        var list = [];
+        table.$("input[type='checkbox']:checked").each(function () {
+            list.push(this.name);
+        });
+
+        $.post("/instructions/deleteInvoices/", { list: list.join(","), idCompany: idCompany }, function (result) {
+
+            if (table1.length > 0) {
+                table1.api().ajax.reload(null, false);
+            }
+
+            if (table2.length > 0) {
+                table2.api().ajax.reload(null, false);
+            }
+
+        });
+
+    });
+
+
 
     $('#createInvoice').click(function () {
         var table = $('#listinstructionsC-container table').DataTable();

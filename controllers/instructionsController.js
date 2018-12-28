@@ -307,6 +307,34 @@ exports.setAsPaid = [
     }
 ]
 
+
+/* DELETE INVOICES */
+exports.deleteInvoices = [
+    function (req, res, next) {
+
+        if (req.body.list === "") {
+            return res.send({ err: { msg: "No invoices selected!" } });
+        }
+        logger.log("START DELETE INVOICES: " + req.body.list);
+
+        var lists = req.body.list.split(",");
+
+        async.forEachOf(lists, function (value, key, callback) {
+            models.dte.destroy({ where: { instruction: value } }).then(instr => {
+                return callback();
+            });
+        }, function (err) {
+            if (err) logger.log(err);
+            next();
+        });
+    },
+    function (req, res) {
+        logger.log("START DELETE INVOICES: " + req.body.list + " COMPLETED");
+        return res.send({ res: "OK" });
+    }
+]
+
+
 /* SET AS INVOICED */
 exports.setAsInvoiced = [
     function (req, res, next) {

@@ -33,6 +33,9 @@ router.post('/instructions/setAsPaid/', instructionsController.setAsPaid);
 /* SET AS INVOICED */
 router.post('/instructions/setAsInvoiced/', instructionsController.setAsInvoiced);
 
+/* DELETE INVOICES */
+router.post('/instructions/deleteInvoices/', instructionsController.deleteInvoices);
+
 
 
 
