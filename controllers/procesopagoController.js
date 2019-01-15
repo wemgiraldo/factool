@@ -157,7 +157,7 @@ exports.createNominaPago = [
                     instr[0].creditor_info.rut + instr[0].creditor_info.verification_code,
                     instr[0].creditor_info.business_name,
                     (instr[0].creditor_info.bank_account_2 === null) ? instr[0].creditor_info.bank_account : instr[0].creditor_info.bank_account_2,
-                    instr[0].amount_gross,
+                    Math.round(instr[0].amount * 1.19),
                     instr[0].creditor_info.bank_info.type,
                     instr[0].creditor_info.bank_info.sbif
                 ]);
@@ -167,7 +167,7 @@ exports.createNominaPago = [
                     dte.folio,
                     1,
                     moment().format("YYYYMMDD"),
-                    instr[0].amount_gross,
+                    Math.round(instr[0].amount * 1.19),
                     "",
                     ""
                 ]);
@@ -244,11 +244,11 @@ exports.closeNominaPago = [
                 data = {
                     debtor: req.instruction.debtor,
                     creditor: req.instruction.creditor,
-                    amount: req.instruction.amount_gross,
+                    amount: Math.round(req.instruction.amount * 1.19),
                     payment_dt: moment(req.closed_at).format("Y-M-D"),
                     transaction_type: 3,
                     actual_collector: "test",
-                    instruction_amount_tuples: [[req.instruction.id_cen, req.instruction.amount_gross]],
+                    instruction_amount_tuples: [[req.instruction.id_cen, Math.round(req.instruction.amount * 1.19)]],
                 }
 
                 cen.postCreatePayment(data, function (err, result) {
@@ -369,7 +369,7 @@ exports.showProcesoPago = [
                 instr.creditor_info.name,
                 moment(instr.created_ts).format("Y-MM"),
                 instr.amount,
-                instr.amount_gross,
+                Math.round(instr.amount * 1.19),
                 (dte !== undefined) ? dte.folio : "",
                 (dte !== undefined) ? getDteTypeById(req.dte_type, dte.type) : "",
                 instr.debtor

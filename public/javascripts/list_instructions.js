@@ -194,7 +194,10 @@ $(document).ready(function () {
         "language": {
             "search": "",
             "emptyTable": "Nothing worth to be shown",
-            "thousands": ","
+            //"thousands": ",",
+
+            "decimal": ",",
+            "thousands": "."
         },
         "initComplete": function (settings, json) {
 
@@ -819,7 +822,7 @@ $(document).ready(function () {
 
     });
 
-    
+
     $('#deleteInvoice').click(function () {
         var table = $('#listinstructionsC-container table').DataTable();
 

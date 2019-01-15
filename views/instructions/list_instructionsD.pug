@@ -23,28 +23,21 @@ block content
                 option(value=plant.company_cen_id)=plant.company_cen_id + " - " + plant.company_cen_name
 
         select#year.mr-3.form-control
-            option(selected)=moment().format('YYYY')
+            option(selected)='ALL'
+            option=moment().add(-3,'years').format('YYYY')
+            option=moment().add(-2,'years').format('YYYY')
+            option=moment().add(-1,'years').format('YYYY')
+            option=moment().format('YYYY')
             option=moment().add(1,'years').format('YYYY')
             option=moment().add(2,'years').format('YYYY')
             option=moment().add(3,'years').format('YYYY')
-            option=moment().add(-1,'years').format('YYYY')
-            option=moment().add(-2,'years').format('YYYY')
-            option=moment().add(-3,'years').format('YYYY')
 
-        if moment().format('D') <= 20 
-            select#month.form-control
-                each month,index in months
-                    if index === moment().add(-1,'month').format('M')
-                        option(value=index selected)=month
-                    else
-                        option(value=index)=month
-        else
-            select#month.form-control
-                each month,index in months
-                    if index === moment().format('M')
-                        option(value=index selected)=month
-                    else
-                        option(value=index)=month
+        select#month.form-control
+            each month,index in months
+                if index === 0
+                    option(value=index selected)=month
+                else
+                    option(value=index)=month
 
         a(class="btn btn-backend m-3" id="setAsInvoiced" ) Set as Invoiced
         a(class="btn btn-backend m-3" id="save" style="display: none" ) Save

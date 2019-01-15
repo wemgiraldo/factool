@@ -470,7 +470,7 @@ exports.getDataSapPayments = [
                 data.data.push([
                     "1-1-1-03-09",
                     "",
-                    ingr.amount_gross,
+                    Math.round(ingr.amount * 1.19),
                     req.code_plant.company_cen_name + " FV" + dte.folio,
                     ingr.debtor_info.rut,
                     "AB",
@@ -480,8 +480,8 @@ exports.getDataSapPayments = [
                     "FV",
                     dte.folio,
                     ingr.amount,
-                    ingr.amount_gross - ingr.amount,
-                    ingr.amount_gross
+                    Math.round(ingr.amount * 1.19) - ingr.amount,
+                    Math.round(ingr.amount * 1.19)
                 ]);
             }
         }
@@ -552,7 +552,7 @@ exports.getDataSapSales = [
             if (dte) {
                 data.data.push([
                     "1-1-1-03-09",
-                    ingr.amount_gross,
+                    Math.round(ingr.amount * 1.19),
                     "",
                     req.code_plant.company_cen_name + " FV" + dte.folio,
                     ingr.debtor_info.rut,
@@ -563,8 +563,8 @@ exports.getDataSapSales = [
                     "FV",
                     dte.folio,
                     ingr.amount,
-                    ingr.amount_gross - ingr.amount,
-                    ingr.amount_gross
+                    Math.round(ingr.amount * 1.19) - ingr.amount,
+                    Math.round(ingr.amount * 1.19)
                 ]);
             }
         }
@@ -577,7 +577,7 @@ exports.getDataSapSales = [
                 data.data.push([
                     "2-1-1-05-01",
                     "",
-                    ingr.amount_gross - ingr.amount,
+                    Math.round(ingr.amount * 1.19) - ingr.amount,
                     req.code_plant.company_cen_name + " FV" + dte.folio,
                     "",
                     "",

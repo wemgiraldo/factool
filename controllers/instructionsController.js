@@ -39,22 +39,41 @@ exports.listInstructionsD = [
             req.id = parseInt(req.query.id);
         }
 
-        if (req.query.month === undefined && req.query.year === undefined) {
-            var date = new Date();
-            req.month = date.getMonth();
-            req.year = date.getFullYear();
+        if (req.query.month === undefined && req.query.year === undefined || req.query.month === "0" && req.query.year === "ALL") {
+
+            req.filter = {};
+            req.filter['debtor'] = req.id;
+
+        } else if (req.query.month === "0" && req.query.year !== "ALL") {
+
+            req.year = parseInt(req.query.year);
+
+            req.dateFrom = new Date(req.year, 0, 1);
+            req.dateTo = new Date(req.year, 12, 0);
+
+            req.filter = {};
+            req.filter['debtor'] = req.id;
+            req.filter['created_ts'] = {
+                $between: [req.dateFrom, req.dateTo]
+            }
+
+        } else if (req.query.month !== "0" && req.query.year === "ALL") {
+
+            req.filter = {};
+            req.filter['debtor'] = req.id;
+
         } else {
             req.month = parseInt(req.query.month);
             req.year = parseInt(req.query.year);
-        }
 
-        req.dateFrom = new Date(req.year, req.month - 1, 1);
-        req.dateTo = new Date(req.year, req.month, 0);
+            req.dateFrom = new Date(req.year, req.month - 1, 1);
+            req.dateTo = new Date(req.year, req.month, 0);
 
-        req.filter = {};
-        req.filter['debtor'] = req.id;
-        req.filter['created_ts'] = {
-            $between: [req.dateFrom, req.dateTo]
+            req.filter = {};
+            req.filter['debtor'] = req.id;
+            req.filter['created_ts'] = {
+                $between: [req.dateFrom, req.dateTo]
+            }
         }
 
         next();
@@ -88,7 +107,7 @@ exports.listInstructionsD = [
                 ingr.creditor_info.name,
                 ingr.debtor_info.name,
                 ingr.amount,
-                ingr.amount_gross,
+                Math.round(ingr.amount * 1.19),
                 ingr.status_billed,
                 ingr.status_paid,
                 ingr.status_billed_2,
@@ -105,6 +124,7 @@ exports.listInstructionsD = [
         }
 
         req.months = {};
+        req.months[0] = "ALL";
         req.months[1] = "January";
         req.months[2] = "February";
         req.months[3] = "March";
@@ -131,7 +151,7 @@ exports.listInstructionsC = [
             req.id = parseInt(req.query.id);
         }
 
-        if (req.query.month === undefined && req.query.year === undefined) {
+        /*if (req.query.month === undefined && req.query.year === undefined) {
             var date = new Date();
             req.month = date.getMonth();
             req.year = date.getFullYear();
@@ -147,6 +167,43 @@ exports.listInstructionsC = [
         req.filter['creditor'] = req.id;
         req.filter['created_ts'] = {
             $between: [req.dateFrom, req.dateTo]
+        }*/
+
+        if (req.query.month === undefined && req.query.year === undefined || req.query.month === "0" && req.query.year === "ALL") {
+
+            req.filter = {};
+            req.filter['creditor'] = req.id;
+
+        } else if (req.query.month === "0" && req.query.year !== "ALL") {
+
+            req.year = parseInt(req.query.year);
+
+            req.dateFrom = new Date(req.year, 0, 1);
+            req.dateTo = new Date(req.year, 12, 0);
+
+            req.filter = {};
+            req.filter['creditor'] = req.id;
+            req.filter['created_ts'] = {
+                $between: [req.dateFrom, req.dateTo]
+            }
+
+        } else if (req.query.month !== "0" && req.query.year === "ALL") {
+
+            req.filter = {};
+            req.filter['creditor'] = req.id;
+
+        } else {
+            req.month = parseInt(req.query.month);
+            req.year = parseInt(req.query.year);
+
+            req.dateFrom = new Date(req.year, req.month - 1, 1);
+            req.dateTo = new Date(req.year, req.month, 0);
+
+            req.filter = {};
+            req.filter['creditor'] = req.id;
+            req.filter['created_ts'] = {
+                $between: [req.dateFrom, req.dateTo]
+            }
         }
 
         next();
@@ -180,7 +237,7 @@ exports.listInstructionsC = [
                 ingr.creditor_info.name,
                 ingr.debtor_info.name,
                 ingr.amount,
-                ingr.amount_gross,
+                Math.round(ingr.amount * 1.19),
                 ingr.status_billed,
                 ingr.status_paid,
                 ingr.status_paid_2,
@@ -198,6 +255,7 @@ exports.listInstructionsC = [
         }
 
         req.months = {};
+        req.months[0] = "ALL";
         req.months[1] = "January";
         req.months[2] = "February";
         req.months[3] = "March";
@@ -363,7 +421,7 @@ exports.setAsInvoiced = [
 
                 var data = {
                     instruction: value,
-                    gross_amount: instr.amount_gross,
+                    gross_amount: Math.round(instr.amount * 1.19),
                     net_amount: instr.amount,
                     folio: folio[key],
                     type: type[key],

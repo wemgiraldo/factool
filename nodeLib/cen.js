@@ -1108,7 +1108,7 @@ function updateInstructions(cen, filter, callback) {
                 creditor: resp.results[key].creditor,
                 debtor: resp.results[key].debtor,
                 amount: resp.results[key].amount,
-                amount_gross: resp.results[key].amount_gross,
+                amount_gross: Math.round(resp.results[key].amount * 1.19),
                 closed: resp.results[key].closed === false ? "false" : "true",
                 status: resp.results[key].status,
                 status_billed: resp.results[key].status_billed,

@@ -87,8 +87,8 @@ class FacturacionCL {
                                 MntNeto: instruction.amount,
                                 MntExe: 0,
                                 TasaIVA: 19,
-                                IVA: instruction.amount_gross - instruction.amount,
-                                MntTotal: instruction.amount_gross
+                                IVA: Math.round(instruction.amount * 1.19) - instruction.amount,
+                                MntTotal: Math.round(instruction.amount * 1.19)
                             }
                         },
                         Detalle: {
@@ -183,7 +183,7 @@ class FacturacionCL {
                     var data = {
                         instruction: instruction.id_cen,
                         company: instruction.creditor,
-                        gross_amount: instruction.amount_gross,
+                        gross_amount: Math.round(instruction.amount * 1.19),
                         net_amount: instruction.amount,
                         folio: parseInt(resultJs.WSPLANO.Detalle.Documento.Folio._text),
                         type: parseInt(resultJs.WSPLANO.Detalle.Documento.TipoDte._text),
@@ -200,7 +200,7 @@ class FacturacionCL {
                     var data = {
                         instruction: instruction.id_cen,
                         company: instruction.creditor,
-                        gross_amount: instruction.amount_gross,
+                        gross_amount: Math.round(instruction.amount * 1.19),
                         net_amount: instruction.amount,
                         error: resultJs.WSPLANO.Detalle.Documento.Error._text,
                         folio: parseInt(resultJs.WSPLANO.Detalle.Documento.Folio._text),
